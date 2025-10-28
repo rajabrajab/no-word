@@ -29,15 +29,18 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandLogo(asset('images/logo.png'))
+            ->favicon(asset('images/logo.png'))
+            ->brandLogoHeight('5rem')
             ->login()
             ->font(
                 'Cairo',
                 provider: GoogleFontProvider::class,
             )
             ->colors([
-                'primary' => '#0d6efd',
-                'secondary' => '#6c757d',
-                'tertiary' => '#198754',
+                'primary' => '#141e2d',
+                'secondary' => '#ee2c2e',
+                'tertiary' => '#fac51a',
             ])
             ->plugin(FilamentLanguageSwitcherPlugin::make())
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
