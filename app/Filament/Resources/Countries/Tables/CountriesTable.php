@@ -42,7 +42,8 @@ class CountriesTable
                     ->label(fn ($record) => $record->is_active ? __('panel.make_inactive') : __('panel.make_active'))
                     ->icon(fn ($record) => $record->is_active ? Heroicon::XMark : Heroicon::Check)
                     ->color(fn ($record) => $record->is_active ? 'danger' : 'success')
-                    ->action(fn ($record) => $record->update(['is_active' => !$record->is_active])),
+                    ->action(fn ($record) => $record->update(['is_active' => !$record->is_active]))
+                    ->requiresConfirmation()
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

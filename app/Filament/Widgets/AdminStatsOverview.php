@@ -17,7 +17,7 @@ class AdminStatsOverview extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make(__('panel.users'), number_format(User::count()))
+            Stat::make(__('panel.users'), number_format(User::where('type','!=','admin')->count()))
                 ->icon('heroicon-o-user'),
             Stat::make(__('panel.questions'), number_format(Question::count()))
                 ->icon('heroicon-o-question-mark-circle'),

@@ -63,4 +63,11 @@ return [
     'games_count' => 'عدد الألعاب',
     'users_per_day' => 'المستخدمون يوميًا',
     'subscriptions_per_package' => 'الاشتراكات حسب الباقة',
+    'user_blocked' => 'تم حظر المستخدم بنجاح.',
+    'user_unblocked' => 'تم إلغاء حظر المستخدم بنجاح.',
+    'fixed' => 'قيمة',
+    'percentage' => 'نسبة',
+
+    'bulk_create_questions_title' => 'إضافة الأسئلة للفئة :category',
+
 ];

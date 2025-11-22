@@ -28,6 +28,11 @@ class BulkCreateQuestions extends Page implements HasForms
 
     protected string $view = 'filament.pages.bulk-create-questions';
 
+    public function getTitle(): string
+    {
+        return __('panel.bulk_create_questions_title', ['category' => $this->record->name]);
+    }
+
     public ?Category $record = null;
 
     public array $data = [];

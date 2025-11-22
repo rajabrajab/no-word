@@ -2,22 +2,22 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
-use Filament\Support\Icons\Heroicon;
+use Filament\Notifications\Notification;
 
 class UsersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+           ->query(
+                fn () => User::query()->where('type', '!=', 'admin')
+            )
             ->columnManager(false)
             ->columns([
                 ImageColumn::make('profile_image')
@@ -38,24 +38,29 @@ class UsersTable
                 ->label(__('panel.selected_package'))
                 ->default(__('panel.no_package'))
                 ->searchable(),
-                TextColumn::make('joined_at')->label(__('panel.joined_at'))->dateTime('d-m-Y H:i'),
+                TextColumn::make('joined_at')->date()->label(__('panel.joined_at'))
             ])
             ->filters([
                 //
             ])
             ->recordActions([
-                ViewAction::make()->modal(false),
                 DeleteAction::make(),
-                Action::make('blockUser')
-                    ->label(fn ($record) => $record->is_blocked ? __('panel.unblock_user') : __('panel.block_user'))
-                    ->icon(fn ($record) => $record->is_blocked ? Heroicon::Check : Heroicon::XMark)
-                    ->color(fn ($record) => $record->is_blocked ? 'success' : 'danger')
-                    ->action(fn ($record) => $record->update(['is_blocked' => !$record->is_blocked])),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                 Action::make('blockUser')
+                ->label(fn ($record) => $record->is_blocked ? __('panel.unblock_user') : __('panel.block_user'))
+                ->icon(fn ($record) => $record->is_blocked ? 'heroicon-o-check' : 'heroicon-o-x-mark')
+                ->color(fn ($record) => $record->is_blocked ? 'success' : 'danger')
+                ->requiresConfirmation()
+                ->action(function ($record, $livewire) {
+                    $record->is_blocked = ! $record->is_blocked;
+                    $record->save();
+
+                    Notification::make()
+                        ->title($record->is_blocked ? __('panel.user_blocked') : __('panel.user_unblocked'))
+                        ->success()
+                        ->send();
+
+                    $livewire->dispatch('$refresh');
+                }),
             ]);
     }
 }

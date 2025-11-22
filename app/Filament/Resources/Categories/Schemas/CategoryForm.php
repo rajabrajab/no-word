@@ -15,8 +15,12 @@ class CategoryForm
         return $schema
             ->components([
                 TextInput::make('name'),
-                Select::make('country_id')->options(Country::all()->pluck('name', 'id'))->label(__('panel.country')),
-                FileUpload::make('image')->columnSpanFull(),
+                Select::make('country_id')->options(Country::all()->pluck('name', 'id'))->required()->label(__('panel.country')),
+                FileUpload::make('image')->image()
+                ->disk('public')
+                ->directory('categories')
+                ->visibility('public')
+                ->columnSpanFull(),
             ]);
     }
 }

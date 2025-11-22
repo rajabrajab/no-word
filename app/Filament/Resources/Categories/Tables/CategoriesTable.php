@@ -22,6 +22,7 @@ class CategoriesTable
             ->columnManager(false)
             ->columns([
                 ImageColumn::make('image')
+                ->disk('public')
                 ->size(60)
                 ->circular()
                 ->label(false),

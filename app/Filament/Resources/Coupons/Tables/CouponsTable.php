@@ -17,7 +17,15 @@ class CouponsTable
             ->columnManager(false)
             ->columns([
                 TextColumn::make('code')->searchable()->label(__('panel.code')),
-                TextColumn::make('discount_type')->label(__('panel.discountType')),
+                TextColumn::make('discount_type')
+                ->label(__('panel.discountType'))
+                ->getStateUsing(function ($record) {
+                    return match ($record->discount_type) {
+                        'percentage' => __('panel.percentage'),
+                        'fixed' => __('panel.fixed'),
+                        default => $record->discount_type,
+                    };
+                }),
                 TextColumn::make('discount_value')->label(__('panel.discountValue')),
                 TextColumn::make('valid_from')->date()->label(__('panel.validFrom')),
                 TextColumn::make('valid_to')->date()->label(__('panel.validTo')),

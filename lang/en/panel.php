@@ -62,4 +62,10 @@ return [
     'games_count' => 'Games Count',
     'users_per_day' => 'Users per day',
     'subscriptions_per_package' => 'Subscriptions per package',
+    'user_blocked' => 'User has been blocked successfully.',
+    'user_unblocked' => 'User has been unblocked successfully.',
+    'fixed' => 'Fixed',
+    'percentage' => 'Percentage',
+
+    'bulk_create_questions_label' => 'create questions for :category',
 ];
