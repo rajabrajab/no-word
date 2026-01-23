@@ -30,6 +30,17 @@ class QuestionForm
                 ->label(__('panel.answer'))
                 ->required(),
 
+            Select::make('score')
+                ->label(__('panel.score'))
+                ->options([
+                    200 => '200',
+                    400 => '400',
+                    600 => '600',
+                ])
+                ->required()
+                ->columnSpanFull()
+                ->native(false),
+
             FileUpload::make('media')
                 ->label(__('panel.media'))
                 ->acceptedFileTypes(['image/*', 'video/*','pdf'])

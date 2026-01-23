@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Models\Builders\BaseBuilder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Country extends BaseModel
+class HelpingMethod extends BaseModel
 {
     use SoftDeletes;
 
@@ -13,9 +13,5 @@ class Country extends BaseModel
     {
         return new BaseBuilder($query);
     }
-
-    public function categories(){
-        return  $this->hasMany(Category::class);
-    }
-
 }
+

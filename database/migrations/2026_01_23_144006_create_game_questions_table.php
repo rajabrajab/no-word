@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('questions', function (Blueprint $table) {
+        Schema::create('game_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')
-                ->constrained('categories')
+            $table->foreignId('game_id')
+                ->constrained('games')
                 ->cascadeOnDelete();
-
-            $table->text('question');
-            $table->integer('score')->nullable();
-            $table->text('answer');
-            $table->string('media')->nullable();
-            $table->string('media_type')->nullable();
-            $table->softDeletes();
+            $table->foreignId('question_id')
+                ->constrained('questions')
+                ->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['game_id', 'question_id']);
         });
     }
 
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('game_questions');
     }
 };

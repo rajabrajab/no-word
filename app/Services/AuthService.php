@@ -78,20 +78,10 @@ class AuthService
     public function login($request)
     {
         $user = null;
-        $identifier = $request->input('identifier');
+        $email = $request->input('email');
         $password = $request->input('password');
 
-        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            $user = User::where('email', $identifier)->first();
-        } else {
-            $normalizedPhone = PhoneHelper::normalize($identifier);
-
-            if ($normalizedPhone) {
-                $user = User::whereHas('phone', function ($q) use ($normalizedPhone) {
-                    $q->where('normalized', $normalizedPhone);
-                })->first();
-            }
-        }
+        $user = User::where('email', $email)->first();
 
         if(!$user){
             $this->status = false;

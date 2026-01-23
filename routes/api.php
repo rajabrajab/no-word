@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController};
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -16,4 +15,13 @@ Route::put('profile/update', [AuthController::class, 'updateProfile'])->middlewa
 Route::post('send-otp', [PasswordController::class, 'sendPasswordRestOtp']);
 Route::post('confirm-otp', [PasswordController::class, 'confirmPasswordOtp']);
 Route::post('password-reset', [PasswordController::class, 'passwordRest']);
-Route::post('resend-password-otp', [PasswordController::class, 'passwordRest']);
+Route::post('resend-password-otp', [PasswordController::class, 'sendPasswordRestOtp']);
+
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('countries', [CountryController::class, 'index']);
+Route::get('helping-methods', [HelpingMethodController::class, 'index']);
+Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
+
+Route::post('games', [GameController::class, 'store']);
+Route::get('games/board/{game}', [GameController::class, 'gameBoard']);
+Route::post('teams/{team}/use-helping-method', [GameController::class, 'useHelpingMethod']);

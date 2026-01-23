@@ -13,4 +13,9 @@ class Question extends BaseModel
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function games()
+    {
+        return $this->belongsToMany(Game::class, 'game_questions');
+    }
 }

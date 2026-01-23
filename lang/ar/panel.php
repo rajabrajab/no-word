@@ -70,4 +70,13 @@ return [
 
     'bulk_create_questions_title' => 'إضافة الأسئلة للفئة :category',
 
+    'helping_methods' => 'طرق المساعدة',
+    'helping_method' => 'طريقة المساعدة',
+    'description' => 'الوصف',
+    'icon' => 'الأيقونة',
+
+    'player_avatars' => 'أفاتار اللاعبين',
+    'player_avatar' => 'أفاتار اللاعب',
+    'avatar' => 'الأفاتار',
+    'score' => 'النقاط',
 ];

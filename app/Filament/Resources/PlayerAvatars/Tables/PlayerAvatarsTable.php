@@ -1,26 +1,27 @@
 <?php
 
-namespace App\Filament\Resources\Questions\Tables;
+namespace App\Filament\Resources\PlayerAvatars\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 
-class QuestionsTable
+class PlayerAvatarsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('id')->label('#'),
-                TextColumn::make('question')->label(__('panel.question')),
-                TextColumn::make('answer')->label(__('panel.answer')),
-                TextColumn::make('score')->label(__('panel.score')),
-                TextColumn::make('category.name')->label(__('panel.category')),
+                ImageColumn::make('avatar_path')
+                    ->disk('public')
+                    ->label(__('panel.avatar'))
+                    ->size(60)
+                    ->circular(),
             ])
             ->filters([
                 //
@@ -28,7 +29,6 @@ class QuestionsTable
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
-                ViewAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -37,3 +37,4 @@ class QuestionsTable
             ]);
     }
 }
+

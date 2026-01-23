@@ -11,19 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('questions', function (Blueprint $table) {
+        Schema::create('team_helping_methods', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')
-                ->constrained('categories')
+            $table->foreignId('team_id')
+                ->constrained('teams')
                 ->cascadeOnDelete();
-
-            $table->text('question');
-            $table->integer('score')->nullable();
-            $table->text('answer');
-            $table->string('media')->nullable();
-            $table->string('media_type')->nullable();
-            $table->softDeletes();
+            $table->foreignId('helping_method_id')
+                ->constrained('helping_methods')
+                ->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['team_id', 'helping_method_id']);
         });
     }
 
@@ -32,6 +30,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('team_helping_methods');
     }
 };
+

@@ -68,4 +68,14 @@ return [
     'percentage' => 'Percentage',
 
     'bulk_create_questions_label' => 'create questions for :category',
+
+    'helping_methods' => 'Helping Methods',
+    'helping_method' => 'Helping Method',
+    'description' => 'Description',
+    'icon' => 'Icon',
+
+    'player_avatars' => 'Player Avatars',
+    'player_avatar' => 'Player Avatar',
+    'avatar' => 'Avatar',
+    'score' => 'Score',
 ];
