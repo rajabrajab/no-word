@@ -18,8 +18,9 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->text('question');
-            $table->integer('score')->nullable();
             $table->text('answer');
+            $table->text('hint')->nullable();
+            $table->integer('score')->nullable();
             $table->string('media')->nullable();
             $table->string('media_type')->nullable();
             $table->softDeletes();

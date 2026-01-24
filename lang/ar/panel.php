@@ -12,6 +12,7 @@ return [
     'questions' => 'الأسئلة',
     'question' => 'السؤال',
     'answer' => 'الجواب',
+    'hint' => 'التلميح',
     'media' => 'الوسائط',
     'media_type' => 'نوع الوسائط',
 

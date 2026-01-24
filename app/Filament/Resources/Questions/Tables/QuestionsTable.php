@@ -19,6 +19,7 @@ class QuestionsTable
                 TextColumn::make('id')->label('#'),
                 TextColumn::make('question')->label(__('panel.question')),
                 TextColumn::make('answer')->label(__('panel.answer')),
+                TextColumn::make('hint')->label(__('panel.hint')),
                 TextColumn::make('score')->label(__('panel.score')),
                 TextColumn::make('category.name')->label(__('panel.category')),
             ])

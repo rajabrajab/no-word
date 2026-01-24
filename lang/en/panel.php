@@ -14,6 +14,7 @@ return [
     'answer' => 'Answer',
     'media' => 'Media',
     'media_type' => 'Media Type',
+    'hint' => 'Hint',
 
     'game_settings' => 'Game Settings',
 

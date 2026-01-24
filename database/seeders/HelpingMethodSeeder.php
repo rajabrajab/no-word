@@ -4,35 +4,74 @@ namespace Database\Seeders;
 
 use App\Models\HelpingMethod;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class HelpingMethodSeeder extends Seeder
 {
     public function run(): void
     {
+        $sourceDir = public_path('helping_methods');
+        $targetDir = 'helping_methods';
+
+        if (!Storage::disk('public')->exists($targetDir)) {
+            Storage::disk('public')->makeDirectory($targetDir);
+        }
+
         $helpingMethods = [
             [
-                'name' => 'Hint',
-                'description' => 'Get a helpful hint to guide you towards the answer without revealing it completely.',
-                'icon' => null,
+                'name' => 'اتصال بصديق',
+                'description' => 'تتيح للفريق الاتصال بصديق خارجي عبر مكالمة افتراضية
+                    (صوتية أو نصية) للحصول على مساعدة في الإجابة
+                    على السؤال، مع وقت محدود (30 ثانية).',
+                'icon_file' => 'friend_call.png',
             ],
             [
-                'name' => 'Skip Question',
-                'description' => 'Skip the current question and move to the next one without losing points.',
-                'icon' => null,
+                'name' => 'تغيير السؤال',
+                'description' => 'يسمح للفريق باستبدال السؤال الحالي بسؤال جديد من
+ نفس الفئة، مع استخدام واحد فقط لكل لعبة.',
+                'icon_file' => 'change_qustion.png',
             ],
             [
-                'name' => '50/50',
-                'description' => 'Remove two incorrect options, leaving you with a 50% chance of selecting the correct answer.',
-                'icon' => null,
+                'name' => 'تلميح عن الإجابة',
+                'description' => 'يقدم تلميحاً نصياً أو بصرياً (مثل كلمة مفتاحية أو صورة
+ مرتبطة) لتوجيه الفريق نحو الإجابة الصحيحة دون
+ كشفها بالكامل.',
+                'icon_file' => 'anwser_hint.png',
             ],
         ];
 
         foreach ($helpingMethods as $method) {
+            $iconPath = null;
+
+            if (isset($method['icon_file']) && File::exists($sourceDir . '/' . $method['icon_file'])) {
+                $filename = $method['icon_file'];
+                $targetPath = $targetDir . '/' . $filename;
+
+                if (Storage::disk('public')->exists($targetPath)) {
+                    $this->command->info("Icon {$filename} already exists in storage, skipping copy.");
+                } else {
+                    $fileContents = File::get($sourceDir . '/' . $filename);
+                    Storage::disk('public')->put($targetPath, $fileContents);
+                    $this->command->info("Copied icon {$filename} to storage.");
+                }
+
+                $iconPath = $targetPath;
+            }
+
             HelpingMethod::updateOrCreate(
                 ['name' => $method['name']],
-                $method
+                [
+                    'name' => $method['name'],
+                    'description' => $method['description'],
+                    'icon' => $iconPath,
+                ]
             );
+
+            $this->command->info("Seeded helping method: {$method['name']} with icon: " . ($iconPath ?? 'none'));
         }
+
+        $this->command->info("Helping methods seeding completed!");
     }
 }
 

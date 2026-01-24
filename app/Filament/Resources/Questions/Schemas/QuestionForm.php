@@ -30,6 +30,10 @@ class QuestionForm
                 ->label(__('panel.answer'))
                 ->required(),
 
+            TextInput::make('hint')
+                ->label(__('panel.hint'))
+                ->required(),
+
             Select::make('score')
                 ->label(__('panel.score'))
                 ->options([
