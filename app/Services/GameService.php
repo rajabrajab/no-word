@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 class GameService
 {
-    public function createGame(array $data): Game
+    public function createGame(array $data, int $userId): Game
     {
         DB::beginTransaction();
 
         try {
             $game = Game::create([
                 'name' => $data['name'] ?? null,
+                'user_id' => $userId,
                 'status' => 'active',
             ]);
 

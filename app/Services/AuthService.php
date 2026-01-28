@@ -185,15 +185,9 @@ class AuthService
 
             $user->tokens()->delete();
 
-            $user->is_first_login = false;
-
             $token = $this->loginAndCreateToken($user,$request);
 
             DB::table('password_resets')->where('email', $data['email'])->delete();
-
-            if($user->last_login === null){
-                $user->joined_at = Date::now();
-            }
 
             $this->status = true;
             $this->message = 'Password updated successfully.';
@@ -272,11 +266,6 @@ class AuthService
         }
 
         Auth::login($user);
-
-        $user->last_login = Date::now();
-        $user->ip_address = $request->ip();
-        $user->save();
-
 
         $token = $user->createToken('API Token')->plainTextToken;
 

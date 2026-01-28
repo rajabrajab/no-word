@@ -27,6 +27,11 @@ class CategoriesTable
                 ->circular()
                 ->label(false),
                 TextColumn::make('name')->label(__('panel.name'))->searchable(),
+                TextColumn::make('description')
+                    ->label(__('panel.description'))
+                    ->limit(50)
+                    ->wrap()
+                    ->searchable(),
                 TextColumn::make('country.name')->label(__('panel.country'))->searchable(),
             ])
             ->filters([

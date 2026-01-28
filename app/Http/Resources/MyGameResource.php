@@ -6,7 +6,7 @@ use App\Models\HelpingMethod;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameBoardResource extends JsonResource
+class MyGameResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -61,6 +61,10 @@ class GameBoardResource extends JsonResource
         })->filter()->values();
 
         return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'status' => $this->status,
+            'playing_times' => $this->playing_times,
             'teams' => $teams->values(),
             'categories' => $categories,
         ];

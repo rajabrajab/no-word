@@ -8,6 +8,11 @@ class Game extends BaseModel
 {
     use SoftDeletes;
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function teams()
     {
         return $this->hasMany(Team::class);

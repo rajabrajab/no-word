@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['game_id', 'question_id']);
+            $table->index(['game_id', 'question_id']);
         });
     }
 

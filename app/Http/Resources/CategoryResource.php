@@ -12,6 +12,7 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'description' => $this->description,
             'image' => $this->image ? asset('storage/' . $this->image) : null,
             'country' => $this->whenLoaded('country', function () {
                 return new CountryResource($this->country);
