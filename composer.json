@@ -12,6 +12,7 @@
         "laravel-lang/lang": "^15.25",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
+        "laravel/telescope": "^5.16",
         "laravel/tinker": "^2.10.1",
         "tomatophp/filament-language-switcher": "^4.0"
     },

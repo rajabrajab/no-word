@@ -102,5 +102,47 @@ class GameService
 
         return $game;
     }
+
+    public function resetGame(Game $game, array $data): Game
+    {
+        DB::beginTransaction();
+
+        try {
+            $teams = $game->teams()->orderBy('id')->get();
+
+            if ($teams->count() > 0) {
+                $team1 = $teams->first();
+                $team1->update([
+                    'name' => $data['team1']['name'],
+                    'players_number' => $data['team1']['players_number'],
+                    'avatar_id' => $data['team1']['avatar_id'] ?? null,
+                    'score' => 0,
+                ]);
+
+                $team1->usedHelpingMethods()->detach();
+            }
+
+            if ($teams->count() > 1) {
+                $team2 = $teams->skip(1)->first();
+                $team2->update([
+                    'name' => $data['team2']['name'],
+                    'players_number' => $data['team2']['players_number'],
+                    'avatar_id' => $data['team2']['avatar_id'] ?? null,
+                    'score' => 0,
+                ]);
+
+                $team2->usedHelpingMethods()->detach();
+            }
+
+            $game->load(['teams.usedHelpingMethods', 'questions.category']);
+
+            DB::commit();
+
+            return $game;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to reset game: ' . $e->getMessage());
+        }
+    }
 }
 

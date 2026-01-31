@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateGameRequest;
+use App\Http\Requests\ResetGameRequest;
 use App\Http\Requests\UseHelpingMethodRequest;
 use App\Http\Resources\GameBoardResource;
 use App\Http\Resources\GameResource;
@@ -125,6 +126,21 @@ class GameController extends Controller
                 return new MyGameResource($game);
             }),
             'My games retrieved successfully.'
+        );
+    }
+
+    public function reset(ResetGameRequest $request, Game $game)
+    {
+        if ($game->user_id !== auth()->user()->id) {
+            return response()->sendError(403, 'Unauthorized access to this game.');
+        }
+
+        $data = $request->validated();
+        $game = $this->gameService->resetGame($game, $data);
+
+        return response()->sendResponse(
+            new GameBoardResource($game),
+            'Game reset successfully.'
         );
     }
 }
