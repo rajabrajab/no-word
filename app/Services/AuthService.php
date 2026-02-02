@@ -43,12 +43,10 @@ class AuthService
             'name' => $data['name'],
             'email' => $data['email'],
             'type' => 'user',
-            'phone' => [
-                'number' => $data['number'],
-                'country_code' => $data['country_code'],
-                'iso_code' => $data['iso_code'],
-                'normalized' => $data['normalized'],
-            ],
+            'number' => $data['number'],
+            'country_code' => $data['country_code'],
+            'iso_code' => $data['iso_code'],
+            'normalized' => $data['normalized'],
             'profile_image'      => $imgUrl ?? null,
             'profile_image_path'  => $imgPath ?? null,
         ];
@@ -226,10 +224,10 @@ class AuthService
             'email' => $tempData['user_data']['email'],
             'password' => $tempData['user_data']['password'],
             'type' => $tempData['user_data']['type'],
-            'number' => $tempData['user_data']['phone']['number'] ?? null,
-            'country_code' => $tempData['user_data']['phone']['country_code'] ?? null,
-            'iso_code' => $tempData['user_data']['phone']['iso_code'] ?? null,
-            'normalized' => $tempData['user_data']['phone']['normalized'] ?? null,
+            'number' => $tempData['user_data']['number'] ?? null,
+            'country_code' => $tempData['user_data']['country_code'] ?? null,
+            'iso_code' => $tempData['user_data']['iso_code'] ?? null,
+            'normalized' => $tempData['user_data']['normalized'] ?? null,
             'profile_image' => $tempData['user_data']['profile_image_path'] ?? null,
         ]);
 
@@ -319,24 +317,6 @@ class AuthService
         }
 
         return $this->sendPasswordRestOtp($email);
-    }
-
-    private function createNewVendor($user,$vendorData){
-
-        $vendor = $user->vendor()->create([
-            'name' => $vendorData['name'],
-            'address' => $vendorData['address'],
-            'category_id' => $vendorData['category_id'],
-            'sub_category_id' => $vendorData['sub_category_id'],
-            'activated_at' => null,
-        ]);
-
-        VendorRegistrationRequest::create([
-            'vendor_id' => $vendor->id,
-        ]);
-
-        return $vendor;
-
     }
 
     public function status()

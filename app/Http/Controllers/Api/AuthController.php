@@ -91,7 +91,7 @@ class AuthController extends Controller
         if ($response->status()) {
             return response()->sendResponse([
                 'token' => $response->data()['token'],
-                'user' => (new UserResource($response->data()['user']))->withHidden(['permissions','is_first_login'])
+                'user' => new UserResource($response->data()['user'])
             ] , $response->message());
         }
 
@@ -104,7 +104,7 @@ class AuthController extends Controller
             'email' => 'required'
         ]);
 
-        $response = $this->authService->resendCode($data['email']);
+        $response = $this->authService->resendRegisterCode($data['email']);
 
         if ($response->status()) {
 
