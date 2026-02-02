@@ -61,6 +61,7 @@ class AuthService
         catch (Exception $e) {
             $this->status = false;
             $this->message = 'Failed to send OTP. Error: ' . $e->getMessage();
+            return $this;
         }
 
         Cache::put($data['email'], [
