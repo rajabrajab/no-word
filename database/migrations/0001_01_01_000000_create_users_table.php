@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('name');
 
-            $table->string('number');
+            $table->string('number')->nullable();
             $table->string('country_code')->nullable();
             $table->string('iso_code')->nullable();
             $table->string('normalized')->nullable();
