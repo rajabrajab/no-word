@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Questions\Pages;
 
 use App\Filament\Resources\Questions\QuestionResource;
+use App\Services\QrCodeService;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -19,5 +20,13 @@ class EditQuestion extends EditRecord
             ForceDeleteAction::make(),
             RestoreAction::make(),
         ];
+    }
+
+    protected function afterSave(): void
+    {
+        $qrCodeService = app(QrCodeService::class);
+        $this->record->update([
+            'qr_code' => $qrCodeService->generateForQuestion($this->record)
+        ]);
     }
 }

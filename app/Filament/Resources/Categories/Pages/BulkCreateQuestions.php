@@ -136,6 +136,8 @@ class BulkCreateQuestions extends Page implements HasForms
         }
 
         DB::transaction(function () use ($questions) {
+            $qrCodeService = app(\App\Services\QrCodeService::class);
+            
             foreach ($questions as $item) {
                 if (!trim((string)($item['question'] ?? '')) || !trim((string)($item['answer'] ?? ''))) {
                     continue;
@@ -143,12 +145,17 @@ class BulkCreateQuestions extends Page implements HasForms
 
                 $mediaPath = $item['media'] ?? null;
 
-                \App\Models\Question::create([
+                $question = \App\Models\Question::create([
                     'category_id' => $this->record->id,
                     'question' => $item['question'],
                     'answer' => $item['answer'],
                     'media' => $mediaPath,
                     'media_type' => $item['media_type'] ?? null,
+                ]);
+
+                // Generate QR code for the question
+                $question->update([
+                    'qr_code' => $qrCodeService->generateForQuestion($question)
                 ]);
             }
         });

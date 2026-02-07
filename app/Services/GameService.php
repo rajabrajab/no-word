@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Game;
 use App\Models\Question;
 use App\Models\Team;
@@ -142,6 +143,78 @@ class GameService
         } catch (\Exception $e) {
             DB::rollBack();
             throw new \Exception('Failed to reset game: ' . $e->getMessage());
+        }
+    }
+
+    public function createRandomGame(array $data, int $userId): Game
+    {
+        DB::beginTransaction();
+
+        try {
+            $game = Game::create([
+                'name' => $data['name'] ?? null,
+                'user_id' => $userId,
+                'status' => 'active',
+            ]);
+
+            $team1 = Team::create([
+                'game_id' => $game->id,
+                'name' => $data['team1']['name'],
+                'players_number' => $data['team1']['players_number'],
+                'score' => 0,
+                'avatar_id' => $data['team1']['avatar_id'] ?? null,
+            ]);
+
+            $team2 = Team::create([
+                'game_id' => $game->id,
+                'name' => $data['team2']['name'],
+                'players_number' => $data['team2']['players_number'],
+                'score' => 0,
+                'avatar_id' => $data['team2']['avatar_id'] ?? null,
+            ]);
+
+            $randomCategories = Category::whereIn('country_id', $data['countries'])
+                ->inRandomOrder()
+                ->limit(6)
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($randomCategories)) {
+                $game->categories()->attach($randomCategories);
+            }
+
+            $selectedQuestionIds = [];
+            $scores = [200, 400, 600];
+
+            foreach ($randomCategories as $categoryId) {
+                foreach ($scores as $score) {
+                    $questions = Question::where('category_id', $categoryId)
+                        ->where('score', $score)
+                        ->inRandomOrder()
+                        ->limit(2)
+                        ->pluck('id')
+                        ->toArray();
+
+                    if (count($questions) > 0) {
+                        $selectedQuestionIds = array_merge($selectedQuestionIds, $questions);
+
+                        if (count($questions) == 1) {
+                            $selectedQuestionIds[] = $questions[0];
+                        }
+                    }
+                }
+            }
+
+            if (!empty($selectedQuestionIds)) {
+                $game->questions()->attach($selectedQuestionIds);
+            }
+
+            DB::commit();
+
+            return $game;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to create random game: ' . $e->getMessage());
         }
     }
 }

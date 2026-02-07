@@ -24,6 +24,7 @@ Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('games', [GameController::class, 'store']);
+    Route::post('games/random', [GameController::class, 'createRandom']);
     Route::get('games/my-games', [GameController::class, 'myGames']);
     Route::get('games/board/{game}', [GameController::class, 'gameBoard']);
     Route::post('games/{game}/reset', [GameController::class, 'reset']);

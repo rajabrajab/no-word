@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Question;
 use App\Models\Category;
+use App\Services\QrCodeService;
 use Illuminate\Database\Seeder;
 
 class QuestionSeeder extends Seeder
@@ -183,6 +184,8 @@ class QuestionSeeder extends Seeder
             'الدين' => 21,
         ];
 
+        $qrCodeService = app(QrCodeService::class);
+
         foreach ($categories as $category) {
             $categoryName = $category->name;
 
@@ -191,7 +194,7 @@ class QuestionSeeder extends Seeder
                 $endIndex = $startIndex + 3;
 
                 for ($i = $startIndex; $i < $endIndex && $i < count($questions); $i++) {
-                    Question::updateOrCreate(
+                    $question = Question::updateOrCreate(
                         [
                             'category_id' => $category->id,
                             'question' => $questions[$i]['question'],
@@ -204,6 +207,12 @@ class QuestionSeeder extends Seeder
                             'score' => $questions[$i]['score'],
                         ]
                     );
+
+                    if (!$question->qr_code) {
+                        $question->update([
+                            'qr_code' => $qrCodeService->generateForQuestion($question)
+                        ]);
+                    }
                 }
             }
         }

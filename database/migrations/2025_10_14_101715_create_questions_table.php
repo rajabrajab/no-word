@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('score')->nullable();
             $table->string('media')->nullable();
             $table->string('media_type')->nullable();
+            $table->string('qr_code')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

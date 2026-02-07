@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateGameRequest;
+use App\Http\Requests\CreateRandomGameRequest;
 use App\Http\Requests\ResetGameRequest;
 use App\Http\Requests\UseHelpingMethodRequest;
 use App\Http\Resources\GameBoardResource;
@@ -36,6 +37,18 @@ class GameController extends Controller
             ResponseMessages::CREATE_SUCCESS
         );
     }
+
+    public function createRandom(CreateRandomGameRequest $request)
+    {
+        $data = $request->validated();
+        $game = $this->gameService->createRandomGame($data, auth()->user()->id);
+
+        return response()->sendResponse(
+            ['game_id' => $game->id],
+            ResponseMessages::CREATE_SUCCESS
+        );
+    }
+
     public function gameBoard(Request $request, Game $game)
     {
         if ($game->user_id !== auth()->user()->id) {

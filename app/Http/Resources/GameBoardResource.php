@@ -27,6 +27,7 @@ class GameBoardResource extends JsonResource
             return [
                 'id' => $team->id,
                 'team_name' => $team->name,
+                'avatar' => $team->avatar ? asset('storage/' . $team->avatar) : null,
                 'score' => $team->score,
                 'helping_methods' => $helpingMethods,
             ];
@@ -45,6 +46,9 @@ class GameBoardResource extends JsonResource
                 'category' => [
                     'id' => $category->id,
                     'name' => $category->name,
+                    'description' => $category->description,
+                    'image' => $category->icon ? asset('storage/' . $category->icon) : null,
+                    'country' => $category->country ? new CountryResource($category->country) : null,
                 ],
                 'questions' => $categoryQuestions->map(function ($question) {
                     return [
