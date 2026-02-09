@@ -25,7 +25,8 @@ class Game extends BaseModel
 
     public function questions()
     {
-        return $this->belongsToMany(Question::class, 'game_questions');
+        return $this->belongsToMany(Question::class, 'game_questions')
+            ->withPivot('is_answered');
     }
 }
 

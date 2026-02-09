@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('question_id')
                 ->constrained('questions')
                 ->cascadeOnDelete();
+            $table->integer('is_answered')->default(0);
             $table->timestamps();
 
             $table->index(['game_id', 'question_id']);

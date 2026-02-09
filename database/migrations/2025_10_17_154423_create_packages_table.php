@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('packages', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('image')->nullable();
             $table->decimal('games_count', 10, 2)->nullable();
             $table->decimal('price', 10, 2);
             $table->unsignedInteger('subscription_count')->default(0);
@@ -27,6 +28,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('packages');
+        Schema::enableForeignKeyConstraints();
     }
 };

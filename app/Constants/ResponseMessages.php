@@ -20,4 +20,6 @@ class ResponseMessages
     public const VALIDATION_FAILURE = 'Validation failed.';
 
     public const UNAUTHORIZED = 'Email or password incorcet.';
+    
+    public const APPLY_COUPON_SUCCESS = 'Coupon applied successfully.';
 }

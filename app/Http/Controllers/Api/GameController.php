@@ -96,6 +96,11 @@ class GameController extends Controller
 
         DB::transaction(function () use ($team, $question) {
             $team->increment('score', $question->score ?? 0);
+
+            DB::table('game_questions')
+                ->where('game_id', $team->game->id)
+                ->where('question_id', $question->id)
+                ->update(['is_answered' => 1]);
         });
 
         return response()->sendResponse(

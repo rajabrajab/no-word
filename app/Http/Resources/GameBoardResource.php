@@ -27,7 +27,7 @@ class GameBoardResource extends JsonResource
             return [
                 'id' => $team->id,
                 'team_name' => $team->name,
-                'avatar' => $team->avatar ? asset('storage/' . $team->avatar) : null,
+                'avatar' => $team->avatar ? asset('storage/' . $team->avatar->avatar_path) : null,
                 'score' => $team->score,
                 'helping_methods' => $helpingMethods,
             ];
@@ -59,12 +59,15 @@ class GameBoardResource extends JsonResource
                         'hint' => $question->hint,
                         'media' => $question->media ? asset('storage/' . $question->media) : null,
                         'media_type' => $question->media_type,
+                        'is_answered' => isset($question->pivot) ? (bool) $question->pivot->is_answered : false,
                     ];
                 })->values(),
             ];
         })->filter()->values();
 
         return [
+            'id' => $this->id,
+            'name' => $this->name,
             'teams' => $teams->values(),
             'categories' => $categories,
         ];

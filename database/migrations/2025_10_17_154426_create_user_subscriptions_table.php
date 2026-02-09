@@ -24,9 +24,9 @@ return new class extends Migration
                   ->cascadeOnUpdate()
                   ->cascadeOnDelete();
 
-            $table->dateTime('started_at')->useCurrent();
-            $table->dateTime('ends_at')->nullable();
             $table->string('status')->default('active');
+
+            $table->integer('games_remaining')->default(0);
 
             $table->unique('user_id');
 

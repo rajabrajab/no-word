@@ -8,12 +8,19 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+
 class PackagesTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
+                ImageColumn::make('image')
+                    ->disk('public')
+                    ->size(60)
+                    ->circular()
+                    ->label(false),
                 TextColumn::make('name')->label(__('panel.name'))->searchable(),
                 TextColumn::make('price')->label(__('panel.price')),
                 TextColumn::make('games_count')->label(__('panel.games_count')),

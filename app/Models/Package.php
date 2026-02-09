@@ -5,8 +5,8 @@ namespace App\Models;
 class Package extends BaseModel
 {
     protected $casts = [
-        'price' => 'decimal:2',
-        'games_count' => 'decimal:2',
+        'price' => 'integer',
+        'games_count' => 'integer',
     ];
 
     public function subscriptions()

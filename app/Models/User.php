@@ -51,6 +51,47 @@ class User extends Authenticatable
 
     public function subscription()
     {
-        return $this->hasMany(UserSubscription::class);
+        return $this->hasOne(UserSubscription::class);
+    }
+
+    public function activeSubscription()
+    {
+        $subscription = $this->subscription;
+        return ($subscription && $subscription->status === 'active') ? $subscription : null;
+    }
+
+    public function hasRemainingGames(): bool
+    {
+        $subscription = $this->activeSubscription();
+
+        if (!$subscription) {
+            return false;
+        }
+
+        return $subscription->games_remaining > 0;
+    }
+
+    public function getRemainingGamesCount(): int
+    {
+        $subscription = $this->activeSubscription();
+
+        if (!$subscription) {
+            return 0;
+        }
+
+        return $subscription->games_remaining;
+    }
+
+    public function decrementGamesRemaining(): bool
+    {
+        $subscription = $this->activeSubscription();
+
+        if (!$subscription || $subscription->games_remaining <= 0) {
+            return false;
+        }
+
+        $subscription->decrement('games_remaining');
+
+        return true;
     }
 }

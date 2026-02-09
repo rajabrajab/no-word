@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController};
+use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController};
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -21,8 +21,11 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('countries', [CountryController::class, 'index']);
 Route::get('helping-methods', [HelpingMethodController::class, 'index']);
 Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
+Route::get('packages', [PackageController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('packages/subscribe', [PackageController::class, 'subscribe']);
+    Route::post('packages/apply-coupon', [PackageController::class, 'applyCoupon']);
     Route::post('games', [GameController::class, 'store']);
     Route::post('games/random', [GameController::class, 'createRandom']);
     Route::get('games/my-games', [GameController::class, 'myGames']);

@@ -12,6 +12,12 @@ class GameService
 {
     public function createGame(array $data, int $userId): Game
     {
+        $user = \App\Models\User::findOrFail($userId);
+
+        if (!$user->hasRemainingGames()) {
+            throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -20,6 +26,8 @@ class GameService
                 'user_id' => $userId,
                 'status' => 'active',
             ]);
+
+            $user->decrementGamesRemaining();
 
             $team1 = Team::create([
                 'game_id' => $game->id,
@@ -98,6 +106,7 @@ class GameService
     {
         $game->load([
             'teams.usedHelpingMethods',
+            'teams.avatar',
             'questions.category'
         ]);
 
@@ -135,7 +144,7 @@ class GameService
                 $team2->usedHelpingMethods()->detach();
             }
 
-            $game->load(['teams.usedHelpingMethods', 'questions.category']);
+            $game->load(['teams.usedHelpingMethods', 'teams.avatar', 'questions.category']);
 
             DB::commit();
 
@@ -148,6 +157,12 @@ class GameService
 
     public function createRandomGame(array $data, int $userId): Game
     {
+        $user = \App\Models\User::findOrFail($userId);
+
+        if (!$user->hasRemainingGames()) {
+            throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -156,6 +171,8 @@ class GameService
                 'user_id' => $userId,
                 'status' => 'active',
             ]);
+
+            $user->decrementGamesRemaining();
 
             $team1 = Team::create([
                 'game_id' => $game->id,
