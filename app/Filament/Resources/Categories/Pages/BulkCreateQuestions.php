@@ -67,6 +67,7 @@ class BulkCreateQuestions extends Page implements HasForms
 
                             FileUpload::make('media')
                                 ->label(__('panel.media'))
+                                ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
                                 ->disk('public')
                                 ->directory('questions')
                                 ->visibility('public')
@@ -95,6 +96,10 @@ class BulkCreateQuestions extends Page implements HasForms
                                         }
                                         if (str_starts_with($mime, 'video/')) {
                                             $set('media_type', 'video');
+                                            return;
+                                        }
+                                        if (str_starts_with($mime, 'audio/')) {
+                                            $set('media_type', 'audio');
                                             return;
                                         }
                                     }
@@ -137,7 +142,7 @@ class BulkCreateQuestions extends Page implements HasForms
 
         DB::transaction(function () use ($questions) {
             $qrCodeService = app(\App\Services\QrCodeService::class);
-            
+
             foreach ($questions as $item) {
                 if (!trim((string)($item['question'] ?? '')) || !trim((string)($item['answer'] ?? ''))) {
                     continue;

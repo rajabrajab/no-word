@@ -6,11 +6,13 @@ use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateGameRequest;
 use App\Http\Requests\CreateRandomGameRequest;
+use App\Http\Requests\ReplaceQuestionRequest;
 use App\Http\Requests\ResetGameRequest;
 use App\Http\Requests\UseHelpingMethodRequest;
 use App\Http\Resources\GameBoardResource;
 use App\Http\Resources\GameResource;
 use App\Http\Resources\MyGameResource;
+use App\Http\Resources\QuestionResource;
 use App\Models\Game;
 use App\Models\Question;
 use App\Models\Team;
@@ -160,6 +162,25 @@ class GameController extends Controller
             new GameBoardResource($game),
             'Game reset successfully.'
         );
+    }
+
+    public function replaceQuestion(ReplaceQuestionRequest $request, Game $game)
+    {
+        if ($game->user_id !== auth()->user()->id) {
+            return response()->sendError(403, 'Unauthorized access to this game.');
+        }
+
+        $questionId = $request->validated()['question_id'];
+
+        try {
+            $result = $this->gameService->replaceQuestion($game, $questionId);
+
+            return response()->sendResponse(new QuestionResource($result),
+                'Question replaced successfully.'
+            );
+        } catch (\Exception $e) {
+            return response()->sendError(400, $e->getMessage());
+        }
     }
 }
 

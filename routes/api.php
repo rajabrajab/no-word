@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('games/my-games', [GameController::class, 'myGames']);
     Route::get('games/board/{game}', [GameController::class, 'gameBoard']);
     Route::post('games/{game}/reset', [GameController::class, 'reset']);
+    Route::post('games/{game}/replace-question', [GameController::class, 'replaceQuestion']);
     Route::post('teams/{team}/use-helping-method', [GameController::class, 'useHelpingMethod']);
     Route::post('teams/{team}/add-question-score', [GameController::class, 'addQuestionScore']);
     Route::put('teams/{team}/update-score', [GameController::class, 'updateScore']);

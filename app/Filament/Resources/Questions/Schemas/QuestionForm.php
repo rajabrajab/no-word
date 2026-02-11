@@ -8,6 +8,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Filament\Forms\Components\Hidden;
 
@@ -47,7 +48,7 @@ class QuestionForm
 
             FileUpload::make('media')
                 ->label(__('panel.media'))
-                ->acceptedFileTypes(['image/*', 'video/*','pdf'])
+                ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
                 ->multiple(false)
                 ->maxFiles(1)
                 ->disk('public')
@@ -66,7 +67,8 @@ class QuestionForm
                     if ($state instanceof TemporaryUploadedFile) {
                         $mime = $state->getMimeType();
                     } elseif (is_string($state)) {
-                        $mime = Storage::disk('public')->mimeType($state) ?: null;
+                        $fullPath = Storage::disk('public')->path($state);
+                        $mime = File::exists($fullPath) ? File::mimeType($fullPath) : null;
                     }
 
                     if (is_string($mime)) {
@@ -76,6 +78,10 @@ class QuestionForm
                         }
                         if (str_starts_with($mime, 'video/')) {
                             $set('media_type', 'video');
+                            return;
+                        }
+                        if (str_starts_with($mime, 'audio/')) {
+                            $set('media_type', 'audio');
                             return;
                         }
                     }

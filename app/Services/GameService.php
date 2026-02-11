@@ -234,5 +234,69 @@ class GameService
             throw new \Exception('Failed to create random game: ' . $e->getMessage());
         }
     }
+
+    public function replaceQuestion(Game $game, int $questionId): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $questionToReplace = DB::table('game_questions')
+                ->join('questions', 'game_questions.question_id', '=', 'questions.id')
+                ->where('game_questions.game_id', $game->id)
+                ->where('game_questions.question_id', $questionId)
+                ->select('game_questions.id as pivot_id', 'game_questions.question_id', 'questions.category_id', 'questions.score')
+                ->first();
+
+            if (!$questionToReplace) {
+                throw new \Exception('Question not found in this game.');
+            }
+
+            $newQuestionId = DB::selectOne("
+                SELECT id
+                FROM questions
+                WHERE category_id = ?
+                AND score = ?
+                AND id != ?
+                ORDER BY RAND()
+                LIMIT 1
+            ", [
+                $questionToReplace->category_id,
+                $questionToReplace->score,
+                $questionToReplace->question_id
+            ]);
+
+            if (!$newQuestionId) {
+                throw new \Exception('No alternative question found with the same category and level.');
+            }
+
+            DB::table('game_questions')
+                ->where('id', $questionToReplace->pivot_id)
+                ->update(['question_id' => $newQuestionId->id]);
+
+
+            $game->load([
+                'teams.usedHelpingMethods',
+                'teams.avatar',
+                'questions.category'
+            ]);
+
+            $newQuestion = $game->questions()
+                ->where('questions.id', $newQuestionId->id)
+                ->with('category')
+                ->first();
+
+            if (!$newQuestion) {
+                $newQuestion = Question::with('category')->findOrFail($newQuestionId->id);
+            }
+
+            DB::commit();
+
+            return $newQuestion;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to replace question: ' . $e->getMessage());
+        }
+    }
 }
 

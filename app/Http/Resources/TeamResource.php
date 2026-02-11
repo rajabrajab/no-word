@@ -10,12 +10,10 @@ class TeamResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Get first 3 helping methods (always the same for every game)
         $allHelpingMethods = HelpingMethod::orderBy('id')->limit(3)->get();
-        
-        // Get used helping methods for this team
-        $usedHelpingMethods = $this->relationLoaded('usedHelpingMethods') 
-            ? $this->usedHelpingMethods->keyBy('id') 
+
+        $usedHelpingMethods = $this->relationLoaded('usedHelpingMethods')
+            ? $this->usedHelpingMethods->keyBy('id')
             : $this->usedHelpingMethods()->get()->keyBy('id');
 
         $helpingMethods = $allHelpingMethods->map(function ($helpingMethod) use ($usedHelpingMethods) {

@@ -43,25 +43,8 @@ class GameBoardResource extends JsonResource
             }
 
             return [
-                'category' => [
-                    'id' => $category->id,
-                    'name' => $category->name,
-                    'description' => $category->description,
-                    'image' => $category->icon ? asset('storage/' . $category->icon) : null,
-                    'country' => $category->country ? new CountryResource($category->country) : null,
-                ],
-                'questions' => $categoryQuestions->map(function ($question) {
-                    return [
-                        'id' => $question->id,
-                        'score' => $question->score,
-                        'question' => $question->question,
-                        'answer' => $question->answer,
-                        'hint' => $question->hint,
-                        'media' => $question->media ? asset('storage/' . $question->media) : null,
-                        'media_type' => $question->media_type,
-                        'is_answered' => isset($question->pivot) ? (bool) $question->pivot->is_answered : false,
-                    ];
-                })->values(),
+                'category' => new CategoryResource($category),
+                'questions' => QuestionResource::collection($categoryQuestions),
             ];
         })->filter()->values();
 
