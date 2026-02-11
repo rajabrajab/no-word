@@ -6,9 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtpAndRegister']);
 Route::post('resend-otp', [AuthController::class, 'resendOtp']);
-
 Route::post('login', [AuthController::class, 'userLogin']);
-
+Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::put('profile/update', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 

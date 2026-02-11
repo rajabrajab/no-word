@@ -113,4 +113,16 @@ class AuthController extends Controller
 
         return response()->sendError(401, $response->message());
     }
+
+    public function refresh(Request $request)
+    {
+
+        $response = $this->authService->refreshToken($request);
+
+        return response()->sendResponse([
+                'token' => $response->data()['token'],
+                'user' => new UserResource($response->data()['user'])
+        ] , $response->message());
+
+    }
 }

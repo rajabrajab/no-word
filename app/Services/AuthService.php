@@ -319,6 +319,26 @@ class AuthService
         return $this->sendPasswordRestOtp($email);
     }
 
+    public function refreshToken($request)
+    {
+        $user = Auth::user();
+
+        if ($request->user() && $request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
+        $token = $this->loginAndCreateToken($user, $request);
+
+        $this->status = true;
+        $this->message = 'Token refreshed successfully.' ;
+
+        $this->data['token'] = $token;
+        $this->data['user'] = $user;
+
+        return $this;
+
+    }
+
     public function status()
     {
         return $this->status;
