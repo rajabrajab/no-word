@@ -264,7 +264,7 @@ class AuthService
             $user->updateDeviceToken($token);
         }
 
-        Auth::login($user);
+        // Auth::login($user);
 
         $token = $user->createToken('API Token')->plainTextToken;
 
