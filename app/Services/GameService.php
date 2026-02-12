@@ -15,7 +15,15 @@ class GameService
         $user = \App\Models\User::findOrFail($userId);
 
         if (!$user->hasRemainingGames()) {
-            throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+
+            if ($user->has_used_default_game) {
+                throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+            }
+
+            $isDefault = true;
+
+        } else {
+            $isDefault = false;
         }
 
         DB::beginTransaction();
@@ -27,7 +35,11 @@ class GameService
                 'status' => 'active',
             ]);
 
-            $user->decrementGamesRemaining();
+            if (!$isDefault) {
+                $user->decrementGamesRemaining();
+            } else {
+                $user->update(['has_used_default_game' => true]);
+            }
 
             $team1 = Team::create([
                 'game_id' => $game->id,
@@ -160,7 +172,15 @@ class GameService
         $user = \App\Models\User::findOrFail($userId);
 
         if (!$user->hasRemainingGames()) {
-            throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+
+            if ($user->has_used_default_game) {
+                throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+            }
+
+            $isDefault = true;
+
+        } else {
+            $isDefault = false;
         }
 
         DB::beginTransaction();
@@ -172,7 +192,11 @@ class GameService
                 'status' => 'active',
             ]);
 
-            $user->decrementGamesRemaining();
+            if (!$isDefault) {
+                $user->decrementGamesRemaining();
+            } else {
+                $user->update(['has_used_default_game' => true]);
+            }
 
             $team1 = Team::create([
                 'game_id' => $game->id,
