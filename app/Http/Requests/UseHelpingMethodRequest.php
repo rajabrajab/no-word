@@ -10,6 +10,7 @@ class UseHelpingMethodRequest extends FormRequest
     {
         return [
             'helping_method_id' => 'required|exists:helping_methods,id',
+            'question_id' => 'nullable|exists:questions,id',
         ];
     }
 }

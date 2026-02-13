@@ -95,7 +95,7 @@ class GameService
         }
     }
 
-    public function useHelpingMethod(int $teamId, int $helpingMethodId): Game
+    public function useHelpingMethod(int $teamId, int $helpingMethodId): bool
     {
         $team = Team::findOrFail($teamId);
 
@@ -111,7 +111,7 @@ class GameService
 
         $team->load(['avatar', 'usedHelpingMethods', 'game']);
 
-        return $team->game;
+        return true;
     }
 
     public function getGameBoard(Game $game): Game

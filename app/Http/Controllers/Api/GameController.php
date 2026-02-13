@@ -74,40 +74,58 @@ class GameController extends Controller
         }
 
         $helpingMethodId = $request->validated()['helping_method_id'];
-        $game = $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
 
-        return response()->sendResponse(
-            [],
+        $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
+
+        if($helpingMethodId == 2) {
+            $result = $this->gameService->replaceQuestion($team->game, $request->validated()['question_id']);
+        }
+
+        $result = [];
+
+        return response()->sendResponse($result,
             'Helping method marked as used successfully.'
         );
     }
 
-    public function addQuestionScore(Request $request, $teamId)
+    public function addQuestionScore(Request $request)
     {
         $request->validate([
             'question_id' => 'required|exists:questions,id',
+            'team_id' => 'nullable|exists:teams,id',
+            'game_id' => 'required|exists:games,id',
         ]);
 
-        $team = Team::with('game')->findOrFail($teamId);
+        $game = Game::findOrFail($request->game_id);
 
-        if ($team->game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this team.');
+        if ($game->user_id !== auth()->user()->id) {
+            return response()->sendError(403, 'Unauthorized access to this game.');
         }
 
         $question = Question::findOrFail($request->question_id);
+        $teamId = $request->team_id;
 
-        DB::transaction(function () use ($team, $question) {
-            $team->increment('score', $question->score ?? 0);
+        DB::transaction(function () use ($teamId, $question, $game) {
+            if ($teamId) {
+                $team = Team::findOrFail($teamId);
+
+                if ($team->game_id !== $game->id) {
+                    throw new \Exception('Team does not belong to this game.');
+                }
+
+                $team->increment('score', $question->score ?? 0);
+            }
 
             DB::table('game_questions')
-                ->where('game_id', $team->game->id)
+                ->where('game_id', $game->id)
                 ->where('question_id', $question->id)
                 ->update(['is_answered' => 1]);
         });
 
+
         return response()->sendResponse(
             [],
-            'Question score added to team successfully.'
+            'Question marked as answered successfully.'
         );
     }
 
