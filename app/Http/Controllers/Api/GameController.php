@@ -75,11 +75,12 @@ class GameController extends Controller
 
         $helpingMethodId = $request->validated()['helping_method_id'];
 
-        $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
 
         if($helpingMethodId == 2) {
             $result = $this->gameService->replaceQuestion($team->game, $request->validated()['question_id']);
         }
+
+        $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
 
         $result = [];
 
