@@ -15,11 +15,22 @@ class CreateQuestion extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        unset($data['generate_qr_code']);
+
+        return $data;
+    }
+
     protected function afterCreate(): void
     {
-        $qrCodeService = app(QrCodeService::class);
-        $this->record->update([
-            'qr_code' => $qrCodeService->generateForQuestion($this->record)
-        ]);
+        $formData = $this->form->getRawState();
+
+        if (isset($formData['generate_qr_code']) && $formData['generate_qr_code']) {
+            $qrCodeService = app(QrCodeService::class);
+            $this->record->update([
+                'qr_code' => $qrCodeService->generateForQuestion($this->record)
+            ]);
+        }
     }
 }

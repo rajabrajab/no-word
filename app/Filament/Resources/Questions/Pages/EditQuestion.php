@@ -22,11 +22,37 @@ class EditQuestion extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['generate_qr_code'] = !empty($this->record->qr_code);
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        unset($data['generate_qr_code']);
+
+        return $data;
+    }
+
     protected function afterSave(): void
     {
-        $qrCodeService = app(QrCodeService::class);
-        $this->record->update([
-            'qr_code' => $qrCodeService->generateForQuestion($this->record)
-        ]);
+
+        $formData = $this->form->getRawState();
+
+        if (isset($formData['generate_qr_code']) && $formData['generate_qr_code']) {
+            $qrCodeService = app(QrCodeService::class);
+            $this->record->update([
+                'qr_code' => $qrCodeService->generateForQuestion($this->record)
+            ]);
+        } elseif (isset($formData['generate_qr_code']) && !$formData['generate_qr_code']) {
+            if ($this->record->qr_code) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($this->record->qr_code);
+            }
+            $this->record->update([
+                'qr_code' => null
+            ]);
+        }
     }
 }

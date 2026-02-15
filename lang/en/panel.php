@@ -79,4 +79,6 @@ return [
     'player_avatar' => 'Player Avatar',
     'avatar' => 'Avatar',
     'score' => 'Score',
+
+    'generate_qr_code' => 'Generate QR Code',
 ];

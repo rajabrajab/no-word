@@ -6,6 +6,7 @@ use Filament\Schemas\Schema;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Checkbox;
 use App\Models\Category;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
@@ -91,6 +92,11 @@ class QuestionForm
 
             Hidden::make('media_type')
                 ->default(''),
+
+            Checkbox::make('generate_qr_code')
+                ->label(__('panel.generate_qr_code') ?: 'Generate QR Code')
+                ->default(false)
+                ->columnSpanFull(),
         ]);
     }
 }

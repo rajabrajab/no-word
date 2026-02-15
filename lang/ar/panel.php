@@ -80,4 +80,6 @@ return [
     'player_avatar' => 'أفاتار اللاعب',
     'avatar' => 'الأفاتار',
     'score' => 'النقاط',
+
+    'generate_qr_code' => 'إنشاء QR Code',
 ];
