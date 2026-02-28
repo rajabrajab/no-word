@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Resources\QuestionResource;
 use App\Models\Category;
 use App\Models\Game;
 use App\Models\Question;
@@ -259,7 +260,7 @@ class GameService
         }
     }
 
-    public function replaceQuestion(Game $game, int $questionId): Question
+    public function replaceQuestion(Game $game, int $questionId): QuestionResource
     {
         DB::beginTransaction();
 
@@ -315,7 +316,7 @@ class GameService
 
             DB::commit();
 
-            return $newQuestion;
+            return  new QuestionResource($newQuestion);
 
         } catch (\Exception $e) {
             DB::rollBack();

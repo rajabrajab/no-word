@@ -78,11 +78,11 @@ class GameController extends Controller
 
         if($helpingMethodId == 2) {
             $result = $this->gameService->replaceQuestion($team->game, $request->validated()['question_id']);
+        }else{
+            $result = [];
         }
 
         $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
-
-        $result = [];
 
         return response()->sendResponse($result,
             'Helping method marked as used successfully.'
