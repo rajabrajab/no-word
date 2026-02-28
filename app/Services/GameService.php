@@ -259,7 +259,7 @@ class GameService
         }
     }
 
-    public function replaceQuestion(Game $game, int $questionId): array
+    public function replaceQuestion(Game $game, int $questionId): Question
     {
         DB::beginTransaction();
 
