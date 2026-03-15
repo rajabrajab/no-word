@@ -24,6 +24,7 @@ Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('packages', [PackageController::class, 'index']);
     Route::get('subscriptions', [PackageController::class, 'getSubscriptions']);
+     Route::post('subscriptions/{subscription}/cancel', [PackageController::class, 'cancelSubscription']);
     Route::post('packages/subscribe', [PackageController::class, 'subscribe']);
     Route::post('packages/apply-coupon', [PackageController::class, 'applyCoupon']);
     Route::post('games', [GameController::class, 'store']);

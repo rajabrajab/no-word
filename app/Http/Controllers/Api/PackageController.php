@@ -128,4 +128,21 @@ class PackageController extends Controller
             return response()->sendError(500, 'Failed to apply coupon: ' . $e->getMessage());
         }
     }
+
+    public function cancelSubscription(UserSubscription $subscription){
+        $user = auth()->user();
+
+        if ($subscription->user_id !== $user->id) {
+           throw new \Exception('You do not have permission to cancel this subscription.');
+        }
+
+        if ($subscription->status !== 'active') {
+            throw new \Exception('This subscription is already cancelled.');
+        }
+
+        $subscription->update(['status' => 'cancelled']);
+
+        return response()->sendResponse([], 'Subscription cancelled successfully.');
+    }
+
 }
