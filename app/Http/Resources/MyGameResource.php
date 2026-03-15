@@ -23,6 +23,13 @@ class MyGameResource extends JsonResource
                 'category' => [
                     'id' => $category->id,
                     'name' => $category->name,
+                    'description' => $category->description,
+                    'image' => $category->image ? asset('storage/' . $category->image) : null,
+                    'country' => $category->country ? [
+                        'id' => $category->country->id,
+                        'name' => $category->country->name,
+                        'image' => $category->country->image ? asset('storage/' . $category->country->image) : null,
+                    ] : null,
                 ]
             ];
         })->filter()->values();

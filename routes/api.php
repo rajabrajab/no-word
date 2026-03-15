@@ -20,9 +20,10 @@ Route::get('categories', [CategoryController::class, 'index']);
 Route::get('countries', [CountryController::class, 'index']);
 Route::get('helping-methods', [HelpingMethodController::class, 'index']);
 Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
-Route::get('packages', [PackageController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('packages', [PackageController::class, 'index']);
+    Route::get('subscriptions', [PackageController::class, 'getSubscriptions']);
     Route::post('packages/subscribe', [PackageController::class, 'subscribe']);
     Route::post('packages/apply-coupon', [PackageController::class, 'applyCoupon']);
     Route::post('games', [GameController::class, 'store']);

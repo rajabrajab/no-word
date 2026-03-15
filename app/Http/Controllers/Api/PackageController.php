@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplyCouponRequest;
 use App\Http\Requests\SubscribeRequest;
 use App\Http\Resources\PackageResource;
+use App\Http\Resources\SubscriptionResource;
 use App\Models\Coupon;
 use App\Models\Package;
 use App\Models\UserSubscription;
@@ -18,9 +19,32 @@ class PackageController extends Controller
     public function index(Request $request)
     {
         $packages = Package::all();
+        $user = auth()->user();
+
+        $subscribedPackageId = null;
+        if ($user) {
+            $userSubscription = UserSubscription::where('user_id', $user->id)->where('status', 'active')->first();
+            $subscribedPackageId = $userSubscription?->package_id;
+        }
+
+        $request->merge(['subscribed_package_id' => $subscribedPackageId]);
 
         return response()->sendResponse(
             PackageResource::collection($packages),
+            ResponseMessages::INDEX_SUCCESS
+        );
+    }
+
+    public function getSubscriptions()
+    {
+        $subscriptions = UserSubscription::where('user_id', auth()->user()->id)
+            ->with(['package'])
+            ->orderByRaw('CASE WHEN status = "active" AND games_remaining > 0 THEN 0 ELSE 1 END')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->sendResponse(
+            SubscriptionResource::collection($subscriptions),
             ResponseMessages::INDEX_SUCCESS
         );
     }
