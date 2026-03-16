@@ -17,6 +17,8 @@ return new class extends Migration
                 ->on('teams')
                 ->nullOnDelete();
         });
+
+       Schema::dropIfExists('tournament_teams');
     }
 
     /**
