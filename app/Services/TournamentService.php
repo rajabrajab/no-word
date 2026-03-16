@@ -3,15 +3,36 @@
 namespace App\Services;
 
 use App\Models\Tournament;
-use App\Models\TournamentTeam;
+use App\Models\Team;
 use App\Models\TournamentRound;
 use App\Models\TournamentMatch;
 use App\Models\Game;
+use App\Models\Question;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class TournamentService
 {
+    protected $gameService;
+
+    public function __construct(GameService $gameService)
+    {
+        $this->gameService = $gameService;
+    }
+
+    /**
+     * Validate match is ready for game creation
+     */
+    protected function validateMatchForGame(TournamentMatch $match): void
+    {
+        if (!$match->team1_id || !$match->team2_id) {
+            throw new \Exception('Match is not ready. Both teams must be set.');
+        }
+
+        if ($match->game_id !== null) {
+            throw new \Exception('Match already has a game linked.');
+        }
+    }
 
     private function getRoundName(int $roundNumber, int $totalRounds): string
     {
@@ -56,11 +77,13 @@ class TournamentService
             // Create tournament teams
             $tournamentTeams = [];
             foreach ($teams as $teamData) {
-                $tournamentTeams[] = TournamentTeam::create([
+                $tournamentTeams[] = Team::create([
                     'tournament_id' => $tournament->id,
+                    'game_id' => null, // Will be set when game is created for match
                     'name' => $teamData['name'],
                     'avatar_id' => $teamData['avatar_id'] ?? null,
                     'score' => $teamData['score'] ?? 0,
+                    'players_number' => $teamData['players_number'] ?? 0,
                 ]);
             }
 
@@ -173,7 +196,7 @@ class TournamentService
                 throw new \Exception('Winner must be one of the match teams.');
             }
 
-            $winner = TournamentTeam::findOrFail($winnerTeamId);
+            $winner = Team::findOrFail($winnerTeamId);
 
             // Update match
             $match->winner_id = $winnerTeamId;
@@ -237,17 +260,11 @@ class TournamentService
 
     public function linkGameToMatch(TournamentMatch $match, int $gameId): TournamentMatch
     {
-        if (!$match->team1_id || !$match->team2_id) {
-            throw new \Exception('Match is not ready. Both teams must be set.');
-        }
-
         if ($match->status !== 'pending') {
             throw new \Exception('Match is not pending.');
         }
 
-        if ($match->game_id !== null) {
-            throw new \Exception('Match already has a game linked.');
-        }
+        $this->validateMatchForGame($match);
 
         $game = Game::find($gameId);
         if (!$game) {
@@ -258,5 +275,72 @@ class TournamentService
         $match->save();
 
         return $match->load(['team1.avatar', 'team2.avatar', 'winner.avatar', 'game']);
+    }
+
+    public function createGameForTournament(Tournament $tournament, array $data): Game
+    {
+        $user = \App\Models\User::findOrFail($tournament->user_id);
+        $teamIds = $data['teams'];
+
+        if (count($teamIds) !== 2) {
+            throw new \Exception('Exactly 2 teams are required.');
+        }
+
+        $team1 = Team::findOrFail($teamIds[0]);
+        $team2 = Team::findOrFail($teamIds[1]);
+
+        if ($team1->tournament_id !== $tournament->id || $team2->tournament_id !== $tournament->id) {
+            throw new \Exception('Teams must belong to the specified tournament.');
+        }
+
+        $isDefault = $this->gameService->checkUserGamesRemaining($user);
+
+        DB::beginTransaction();
+
+        try {
+            $game = Game::create([
+                'user_id' => $user->id,
+                'status' => 'active',
+                'tournament_game' => true,
+            ]);
+
+            if (!$isDefault) {
+                $user->decrementGamesRemaining();
+            } else {
+                $user->update(['has_used_default_game' => true]);
+            }
+
+            $team1->update(['game_id' => $game->id]);
+            $team2->update(['game_id' => $game->id]);
+
+            if (isset($data['categories']) && !empty($data['categories'])) {
+                $this->gameService->attachCategoriesAndQuestions($game, $data['categories']);
+            }
+
+            $match = TournamentMatch::where('tournament_id', $tournament->id)
+                ->where(function ($query) use ($team1, $team2) {
+                    $query->where(function ($q) use ($team1, $team2) {
+                        $q->where('team1_id', $team1->id)
+                          ->where('team2_id', $team2->id);
+                    })->orWhere(function ($q) use ($team1, $team2) {
+                        $q->where('team1_id', $team2->id)
+                          ->where('team2_id', $team1->id);
+                    });
+                })
+                ->whereNull('game_id')
+                ->first();
+
+            if ($match) {
+                $match->game_id = $game->id;
+                $match->save();
+            }
+
+            DB::commit();
+
+            return $game->load(['teams.avatar', 'categories', 'questions.category']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to create game for tournament: ' . $e->getMessage());
+        }
     }
 }

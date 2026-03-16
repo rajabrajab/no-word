@@ -11,21 +11,57 @@ use Illuminate\Support\Facades\DB;
 
 class GameService
 {
-    public function createGame(array $data, int $userId): Game
+    public function checkUserGamesRemaining(\App\Models\User $user): bool
     {
-        $user = \App\Models\User::findOrFail($userId);
-
         if (!$user->hasRemainingGames()) {
-
             if ($user->has_used_default_game) {
                 throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
             }
-
-            $isDefault = true;
-
-        } else {
-            $isDefault = false;
+            return true;
         }
+        return false;
+    }
+
+
+    public function attachCategoriesAndQuestions(Game $game, array $categoryIds): void
+    {
+        if (empty($categoryIds)) {
+            return;
+        }
+
+        $game->categories()->attach($categoryIds);
+
+        $selectedQuestionIds = [];
+        $scores = [200, 400, 600];
+
+        foreach ($categoryIds as $categoryId) {
+            foreach ($scores as $score) {
+                $questions = Question::where('category_id', $categoryId)
+                    ->where('score', $score)
+                    ->inRandomOrder()
+                    ->limit(2)
+                    ->pluck('id')
+                    ->toArray();
+
+                if (count($questions) > 0) {
+                    $selectedQuestionIds = array_merge($selectedQuestionIds, $questions);
+
+                    if (count($questions) == 1) {
+                        $selectedQuestionIds[] = $questions[0];
+                    }
+                }
+            }
+        }
+
+        if (!empty($selectedQuestionIds)) {
+            $game->questions()->attach($selectedQuestionIds);
+        }
+    }
+
+    public function createGame(array $data, int $userId): Game
+    {
+        $user = \App\Models\User::findOrFail($userId);
+        $isDefault = $this->checkUserGamesRemaining($user);
 
         DB::beginTransaction();
 
@@ -58,34 +94,7 @@ class GameService
                 'avatar_id' => $data['team2']['avatar_id'] ?? null,
             ]);
 
-            $game->categories()->attach($data['categories']);
-
-
-            $selectedQuestionIds = [];
-            $scores = [200, 400, 600];
-
-            foreach ($data['categories'] as $categoryId) {
-                foreach ($scores as $score) {
-                    $questions = Question::where('category_id', $categoryId)
-                        ->where('score', $score)
-                        ->inRandomOrder()
-                        ->limit(2)
-                        ->pluck('id')
-                        ->toArray();
-
-                    if (count($questions) > 0) {
-                        $selectedQuestionIds = array_merge($selectedQuestionIds, $questions);
-
-                        if (count($questions) == 1) {
-                            $selectedQuestionIds[] = $questions[0];
-                        }
-                    }
-                }
-            }
-
-            if (!empty($selectedQuestionIds)) {
-                $game->questions()->attach($selectedQuestionIds);
-            }
+            $this->attachCategoriesAndQuestions($game, $data['categories']);
 
             DB::commit();
 
@@ -171,18 +180,7 @@ class GameService
     public function createRandomGame(array $data, int $userId): Game
     {
         $user = \App\Models\User::findOrFail($userId);
-
-        if (!$user->hasRemainingGames()) {
-
-            if ($user->has_used_default_game) {
-                throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
-            }
-
-            $isDefault = true;
-
-        } else {
-            $isDefault = false;
-        }
+        $isDefault = $this->checkUserGamesRemaining($user);
 
         DB::beginTransaction();
 
@@ -221,35 +219,7 @@ class GameService
                 ->pluck('id')
                 ->toArray();
 
-            if (!empty($randomCategories)) {
-                $game->categories()->attach($randomCategories);
-            }
-
-            $selectedQuestionIds = [];
-            $scores = [200, 400, 600];
-
-            foreach ($randomCategories as $categoryId) {
-                foreach ($scores as $score) {
-                    $questions = Question::where('category_id', $categoryId)
-                        ->where('score', $score)
-                        ->inRandomOrder()
-                        ->limit(2)
-                        ->pluck('id')
-                        ->toArray();
-
-                    if (count($questions) > 0) {
-                        $selectedQuestionIds = array_merge($selectedQuestionIds, $questions);
-
-                        if (count($questions) == 1) {
-                            $selectedQuestionIds[] = $questions[0];
-                        }
-                    }
-                }
-            }
-
-            if (!empty($selectedQuestionIds)) {
-                $game->questions()->attach($selectedQuestionIds);
-            }
+            $this->attachCategoriesAndQuestions($game, $randomCategories);
 
             DB::commit();
 

@@ -37,6 +37,7 @@ class MyGameResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'is_tournament_game' => (bool) $this->tournament_game,
             'status' => $this->status,
             'playing_times' => $this->playing_times,
             'categories' => $categories,

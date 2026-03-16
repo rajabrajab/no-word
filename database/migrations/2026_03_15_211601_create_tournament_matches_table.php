@@ -27,15 +27,15 @@ return new class extends Migration
             $table->enum('status', ['pending', 'completed'])->default('pending');
             $table->foreignId('team1_id')
                 ->nullable()
-                ->constrained('tournament_teams')
+                ->constrained('teams')
                 ->nullOnDelete();
             $table->foreignId('team2_id')
                 ->nullable()
-                ->constrained('tournament_teams')
+                ->constrained('teams')
                 ->nullOnDelete();
             $table->foreignId('winner_id')
                 ->nullable()
-                ->constrained('tournament_teams')
+                ->constrained('teams')
                 ->nullOnDelete();
             $table->timestamps();
         });

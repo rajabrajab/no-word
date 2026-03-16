@@ -29,16 +29,16 @@ class TournamentMatch extends BaseModel
 
     public function team1()
     {
-        return $this->belongsTo(TournamentTeam::class, 'team1_id');
+        return $this->belongsTo(Team::class, 'team1_id');
     }
 
     public function team2()
     {
-        return $this->belongsTo(TournamentTeam::class, 'team2_id');
+        return $this->belongsTo(Team::class, 'team2_id');
     }
 
     public function winner()
     {
-        return $this->belongsTo(TournamentTeam::class, 'winner_id');
+        return $this->belongsTo(Team::class, 'winner_id');
     }
 }

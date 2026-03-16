@@ -15,6 +15,7 @@ class CreateTournamentRequest extends FormRequest
             'teams' => 'required|array',
             'teams.*.name' => 'required|string|max:255',
             'teams.*.avatar_id' => 'nullable|exists:player_avatars,id',
+            'teams.*.players_number' => 'nullable|integer|min:0',
         ];
     }
 

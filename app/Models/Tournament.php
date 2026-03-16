@@ -23,7 +23,7 @@ class Tournament extends BaseModel
 
     public function teams()
     {
-        return $this->hasMany(TournamentTeam::class);
+        return $this->hasMany(Team::class);
     }
 
     public function rounds()
@@ -38,6 +38,6 @@ class Tournament extends BaseModel
 
     public function champion()
     {
-        return $this->belongsTo(TournamentTeam::class, 'champion_id');
+        return $this->belongsTo(Team::class, 'champion_id');
     }
 }

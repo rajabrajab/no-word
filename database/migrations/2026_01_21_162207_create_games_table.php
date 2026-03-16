@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')
                 ->constrained('users')
                 ->cascadeOnDelete();
+            $table->boolean('tournament_game')->default(false);
             $table->enum('status', ['active', 'completed'])->default('active');
             $table->integer('playing_times')->default(0);
             $table->softDeletes();
