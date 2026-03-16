@@ -20,7 +20,10 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->boolean('is_completed')->default(false);
             $table->tinyInteger('current_round')->default(1);
-            $table->unsignedBigInteger('champion_id')->nullable();
+            $table->foreign('champion_id')
+                    ->references('id')
+                    ->on('teams')
+                    ->nullOnDelete();
             $table->decimal('completion_percentage', 5, 4)->default(0);
             $table->softDeletes();
             $table->timestamps();
