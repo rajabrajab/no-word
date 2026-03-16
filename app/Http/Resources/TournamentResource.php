@@ -15,13 +15,18 @@ class TournamentResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'size' => $this->size,
             'is_completed' => $this->is_completed,
             'completion_percentage' => (float) $this->completion_percentage,
             'current_round' => $this->current_round,
-            'champion' => $this->when($this->champion_id, function () {
-                return new TournamentTeamResource($this->whenLoaded('champion') ? $this->champion : $this->champion()->with('avatar')->first());
-            }),
+            'champion' => $this->champion_id
+                ? new TournamentTeamResource(
+                    $this->whenLoaded('champion')
+                        ? $this->champion
+                        : $this->champion()->with('avatar')->first()
+                )
+                : null,
             'teams' => TournamentTeamResource::collection(
                 $this->whenLoaded('teams')
                     ? $this->teams

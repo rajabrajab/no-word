@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('teams/add-question-score', [GameController::class, 'addQuestionScore']);
     Route::put('teams/{team}/update-score', [GameController::class, 'updateScore']);
 
+    Route::get('tournaments', [TournamentController::class, 'myTournaments']);
     Route::post('tournaments', [TournamentController::class, 'store']);
     Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
     Route::post('tournaments/{tournament}/matches/{match}/winner', [TournamentController::class, 'setWinner']);

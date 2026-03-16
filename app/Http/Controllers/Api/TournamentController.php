@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateTournamentRequest;
 use App\Http\Resources\TournamentResource;
 use App\Http\Resources\TournamentTeamResource;
+use App\Http\Resources\MyTournamentResource;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Services\TournamentService;
@@ -34,6 +35,20 @@ class TournamentController extends Controller
         } catch (\Exception $e) {
             return response()->sendError(500, $e->getMessage());
         }
+    }
+
+    public function myTournaments()
+    {
+        $user = auth()->user();
+
+        $tournaments = Tournament::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->sendResponse(
+            MyTournamentResource::collection($tournaments),
+            ResponseMessages::INDEX_SUCCESS
+        );
     }
 
     public function show(Tournament $tournament)
