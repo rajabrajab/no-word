@@ -115,12 +115,10 @@ class PackageController extends Controller
             $finalPrice = max(0, $originalPrice - $discountAmount);
 
             return response()->sendResponse([
-                'coupon' => [
-                    'id' => $coupon->id,
-                    'code' => $coupon->code,
-                    'type' => $coupon->discount_type,
-                    'value' => $coupon->discount_value,
-                ],
+                'id' => $coupon->id,
+                'code' => $coupon->code,
+                'type' => $coupon->discount_type,
+                'value' => $coupon->discount_value,
                 'price_before_discount' => $originalPrice,
                 'price_after_discount' => $finalPrice,
             ], ResponseMessages::APPLY_COUPON_SUCCESS);

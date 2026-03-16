@@ -1,0 +1,127 @@
+{
+  "id": "tournament_1741778400001",
+  "size": "four",
+  "is_completed": false,
+  "completion_percentage": 0.6667,
+  "current_round": 2,
+  "champion": null,
+  "teams": [
+    {
+      "id": "team_1",
+      "name": "الأسد",
+      "avatar_url": null,
+      "avatar_id": 4,
+      "score": 0
+    },
+    {
+      "id": "team_2",
+      "name": "الذئب",
+      "avatar_url": null,
+      "avatar_id": 2,
+      "score": 0
+    },
+    {
+      "id": "team_3",
+      "name": "العنقاء",
+      "avatar_url": null,
+      "avatar_id": 3,
+      "score": 0
+    },
+    {
+      "id": "team_4",
+      "name": "التنين",
+      "avatar_url": null,
+      "avatar_id": 1,
+      "score": 0
+    }
+  ],
+  "rounds": [
+    {
+      "round_number": 1,
+      "name": "نصف النهائي",
+      "matches": [
+        {
+          "id": "match_1_0",
+          "game_id": "game_2001",
+          "position": 0,
+          "status": "completed",
+          "team1": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_2",
+            "name": "الذئب",
+            "avatar_url": null,
+            "avatar_id": 2,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          }
+        },
+        {
+          "id": "match_1_1",
+          "game_id": "game_2002",
+          "position": 1,
+          "status": "completed",
+          "team1": {
+            "id": "team_3",
+            "name": "العنقاء",
+            "avatar_url": null,
+            "avatar_id": 3,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_4",
+            "name": "التنين",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_3",
+            "name": "العنقاء",
+            "avatar_url": null,
+            "avatar_id": 3,
+            "score": 0
+          }
+        }
+      ]
+    },
+    {
+      "round_number": 2,
+      "name": "النهائي",
+      "matches": [
+        {
+          "id": "match_2_0",
+          "game_id": "game_2003",
+          "position": 0,
+          "status": "pending",
+          "team1": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_3",
+            "name": "العنقاء",
+            "avatar_url": null,
+            "avatar_id": 3,
+            "score": 0
+          },
+          "winner": null
+        }
+      ]
+    }
+  ]
+}

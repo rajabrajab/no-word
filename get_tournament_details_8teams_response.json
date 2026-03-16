@@ -1,0 +1,257 @@
+{
+  "id": "tournament_1741778400000",
+  "size": "eight",
+  "is_completed": false,
+  "completion_percentage": 0.5714,
+  "current_round": 2,
+  "champion": null,
+  "teams": [
+    {
+      "id": "team_1",
+      "name": "الأسد",
+      "avatar_url": null,
+      "avatar_id": 4,
+      "score": 0
+    },
+    {
+      "id": "team_2",
+      "name": "الذئب",
+      "avatar_url": null,
+      "avatar_id": 2,
+      "score": 0
+    },
+    {
+      "id": "team_3",
+      "name": "العنقاء",
+      "avatar_url": null,
+      "avatar_id": 3,
+      "score": 0
+    },
+    {
+      "id": "team_4",
+      "name": "التنين",
+      "avatar_url": null,
+      "avatar_id": 1,
+      "score": 0
+    },
+    {
+      "id": "team_5",
+      "name": "النسر",
+      "avatar_url": null,
+      "avatar_id": 5,
+      "score": 0
+    },
+    {
+      "id": "team_6",
+      "name": "القرش",
+      "avatar_url": null,
+      "avatar_id": 6,
+      "score": 0
+    },
+    {
+      "id": "team_7",
+      "name": "النمر",
+      "avatar_url": null,
+      "avatar_id": 7,
+      "score": 0
+    },
+    {
+      "id": "team_8",
+      "name": "test",
+      "avatar_url": null,
+      "avatar_id": 1,
+      "score": 0
+    }
+  ],
+  "rounds": [
+    {
+      "round_number": 1,
+      "name": "ربع النهائي",
+      "matches": [
+        {
+          "id": "match_1_0",
+          "game_id": "game_1001",
+          "position": 0,
+          "status": "completed",
+          "team1": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_2",
+            "name": "الذئب",
+            "avatar_url": null,
+            "avatar_id": 2,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          }
+        },
+        {
+          "id": "match_1_1",
+          "game_id": "game_1002",
+          "position": 1,
+          "status": "completed",
+          "team1": {
+            "id": "team_3",
+            "name": "العنقاء",
+            "avatar_url": null,
+            "avatar_id": 3,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_4",
+            "name": "التنين",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_4",
+            "name": "التنين",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          }
+        },
+        {
+          "id": "match_1_2",
+          "game_id": "game_1003",
+          "position": 2,
+          "status": "completed",
+          "team1": {
+            "id": "team_5",
+            "name": "النسر",
+            "avatar_url": null,
+            "avatar_id": 5,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_6",
+            "name": "القرش",
+            "avatar_url": null,
+            "avatar_id": 6,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_5",
+            "name": "النسر",
+            "avatar_url": null,
+            "avatar_id": 5,
+            "score": 0
+          }
+        },
+        {
+          "id": "match_1_3",
+          "game_id": "game_1004",
+          "position": 3,
+          "status": "completed",
+          "team1": {
+            "id": "team_7",
+            "name": "النمر",
+            "avatar_url": null,
+            "avatar_id": 7,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_8",
+            "name": "test",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_8",
+            "name": "test",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          }
+        }
+      ]
+    },
+    {
+      "round_number": 2,
+      "name": "نصف النهائي",
+      "matches": [
+        {
+          "id": "match_2_0",
+          "game_id": "game_1005",
+          "position": 0,
+          "status": "completed",
+          "team1": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_4",
+            "name": "التنين",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          },
+          "winner": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          }
+        },
+        {
+          "id": "match_2_1",
+          "game_id": "game_1006",
+          "position": 1,
+          "status": "pending",
+          "team1": {
+            "id": "team_5",
+            "name": "النسر",
+            "avatar_url": null,
+            "avatar_id": 5,
+            "score": 0
+          },
+          "team2": {
+            "id": "team_8",
+            "name": "test",
+            "avatar_url": null,
+            "avatar_id": 1,
+            "score": 0
+          },
+          "winner": null
+        }
+      ]
+    },
+    {
+      "round_number": 3,
+      "name": "النهائي",
+      "matches": [
+        {
+          "id": "match_3_0",
+          "game_id": "game_1007",
+          "position": 0,
+          "status": "pending",
+          "team1": {
+            "id": "team_1",
+            "name": "الأسد",
+            "avatar_url": null,
+            "avatar_id": 4,
+            "score": 0
+          },
+          "team2": null,
+          "winner": null
+        }
+      ]
+    }
+  ]
+}

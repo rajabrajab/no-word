@@ -1,0 +1,187 @@
+{
+  "id": "tournament_1741778400002",
+  "size": "sixteen",
+  "is_completed": false,
+  "completion_percentage": 0.5333,
+  "current_round": 2,
+  "champion": null,
+  "teams": [
+    { "id": "team_1",  "name": "الأسد",    "avatar_url": null, "avatar_id": 4, "score": 0 },
+    { "id": "team_2",  "name": "الذئب",    "avatar_url": null, "avatar_id": 2, "score": 0 },
+    { "id": "team_3",  "name": "العنقاء",  "avatar_url": null, "avatar_id": 3, "score": 0 },
+    { "id": "team_4",  "name": "التنين",   "avatar_url": null, "avatar_id": 1, "score": 0 },
+    { "id": "team_5",  "name": "النسر",    "avatar_url": null, "avatar_id": 5, "score": 0 },
+    { "id": "team_6",  "name": "القرش",    "avatar_url": null, "avatar_id": 6, "score": 0 },
+    { "id": "team_7",  "name": "النمر",    "avatar_url": null, "avatar_id": 7, "score": 0 },
+    { "id": "team_8",  "name": "الدب",     "avatar_url": null, "avatar_id": 8, "score": 0 },
+    { "id": "team_9",  "name": "الصقر",    "avatar_url": null, "avatar_id": 5, "score": 0 },
+    { "id": "team_10", "name": "الثعبان",  "avatar_url": null, "avatar_id": 6, "score": 0 },
+    { "id": "team_11", "name": "الفهد",    "avatar_url": null, "avatar_id": 7, "score": 0 },
+    { "id": "team_12", "name": "الحوت",    "avatar_url": null, "avatar_id": 1, "score": 0 },
+    { "id": "team_13", "name": "الثور",    "avatar_url": null, "avatar_id": 2, "score": 0 },
+    { "id": "team_14", "name": "الحصان",   "avatar_url": null, "avatar_id": 3, "score": 0 },
+    { "id": "team_15", "name": "الديناصور","avatar_url": null, "avatar_id": 4, "score": 0 },
+    { "id": "team_16", "name": "test",      "avatar_url": null, "avatar_id": 1, "score": 0 }
+  ],
+  "rounds": [
+    {
+      "round_number": 1,
+      "name": "دور الـ 16",
+      "matches": [
+        {
+          "id": "match_1_0",
+          "game_id": "game_3001",
+          "position": 0,
+          "status": "completed",
+          "team1": { "id": "team_1",  "name": "الأسد",   "avatar_url": null, "avatar_id": 4, "score": 0 },
+          "team2": { "id": "team_2",  "name": "الذئب",   "avatar_url": null, "avatar_id": 2, "score": 0 },
+          "winner": { "id": "team_1", "name": "الأسد",   "avatar_url": null, "avatar_id": 4, "score": 0 }
+        },
+        {
+          "id": "match_1_1",
+          "game_id": "game_3002",
+          "position": 1,
+          "status": "completed",
+          "team1": { "id": "team_3",  "name": "العنقاء", "avatar_url": null, "avatar_id": 3, "score": 0 },
+          "team2": { "id": "team_4",  "name": "التنين",  "avatar_url": null, "avatar_id": 1, "score": 0 },
+          "winner": { "id": "team_4", "name": "التنين",  "avatar_url": null, "avatar_id": 1, "score": 0 }
+        },
+        {
+          "id": "match_1_2",
+          "game_id": "game_3003",
+          "position": 2,
+          "status": "completed",
+          "team1": { "id": "team_5",  "name": "النسر",   "avatar_url": null, "avatar_id": 5, "score": 0 },
+          "team2": { "id": "team_6",  "name": "القرش",   "avatar_url": null, "avatar_id": 6, "score": 0 },
+          "winner": { "id": "team_5", "name": "النسر",   "avatar_url": null, "avatar_id": 5, "score": 0 }
+        },
+        {
+          "id": "match_1_3",
+          "game_id": "game_3004",
+          "position": 3,
+          "status": "completed",
+          "team1": { "id": "team_7",  "name": "النمر",   "avatar_url": null, "avatar_id": 7, "score": 0 },
+          "team2": { "id": "team_8",  "name": "الدب",    "avatar_url": null, "avatar_id": 8, "score": 0 },
+          "winner": { "id": "team_8", "name": "الدب",    "avatar_url": null, "avatar_id": 8, "score": 0 }
+        },
+        {
+          "id": "match_1_4",
+          "game_id": "game_3005",
+          "position": 4,
+          "status": "completed",
+          "team1": { "id": "team_9",  "name": "الصقر",   "avatar_url": null, "avatar_id": 5, "score": 0 },
+          "team2": { "id": "team_10", "name": "الثعبان", "avatar_url": null, "avatar_id": 6, "score": 0 },
+          "winner": { "id": "team_9", "name": "الصقر",   "avatar_url": null, "avatar_id": 5, "score": 0 }
+        },
+        {
+          "id": "match_1_5",
+          "game_id": "game_3006",
+          "position": 5,
+          "status": "completed",
+          "team1": { "id": "team_11", "name": "الفهد",   "avatar_url": null, "avatar_id": 7, "score": 0 },
+          "team2": { "id": "team_12", "name": "الحوت",   "avatar_url": null, "avatar_id": 1, "score": 0 },
+          "winner": { "id": "team_11","name": "الفهد",   "avatar_url": null, "avatar_id": 7, "score": 0 }
+        },
+        {
+          "id": "match_1_6",
+          "game_id": "game_3007",
+          "position": 6,
+          "status": "completed",
+          "team1": { "id": "team_13", "name": "الثور",    "avatar_url": null, "avatar_id": 2, "score": 0 },
+          "team2": { "id": "team_14", "name": "الحصان",   "avatar_url": null, "avatar_id": 3, "score": 0 },
+          "winner": { "id": "team_14","name": "الحصان",   "avatar_url": null, "avatar_id": 3, "score": 0 }
+        },
+        {
+          "id": "match_1_7",
+          "game_id": "game_3008",
+          "position": 7,
+          "status": "completed",
+          "team1": { "id": "team_15", "name": "الديناصور","avatar_url": null, "avatar_id": 4, "score": 0 },
+          "team2": { "id": "team_16", "name": "test",      "avatar_url": null, "avatar_id": 1, "score": 0 },
+          "winner": { "id": "team_16","name": "test",      "avatar_url": null, "avatar_id": 1, "score": 0 }
+        }
+      ]
+    },
+    {
+      "round_number": 2,
+      "name": "ربع النهائي",
+      "matches": [
+        {
+          "id": "match_2_0",
+          "game_id": "game_3009",
+          "position": 0,
+          "status": "completed",
+          "team1": { "id": "team_1",  "name": "الأسد",   "avatar_url": null, "avatar_id": 4, "score": 0 },
+          "team2": { "id": "team_4",  "name": "التنين",  "avatar_url": null, "avatar_id": 1, "score": 0 },
+          "winner": { "id": "team_1", "name": "الأسد",   "avatar_url": null, "avatar_id": 4, "score": 0 }
+        },
+        {
+          "id": "match_2_1",
+          "game_id": "game_3010",
+          "position": 1,
+          "status": "completed",
+          "team1": { "id": "team_5",  "name": "النسر",   "avatar_url": null, "avatar_id": 5, "score": 0 },
+          "team2": { "id": "team_8",  "name": "الدب",    "avatar_url": null, "avatar_id": 8, "score": 0 },
+          "winner": { "id": "team_5", "name": "النسر",   "avatar_url": null, "avatar_id": 5, "score": 0 }
+        },
+        {
+          "id": "match_2_2",
+          "game_id": "game_3011",
+          "position": 2,
+          "status": "pending",
+          "team1": { "id": "team_9",  "name": "الصقر",   "avatar_url": null, "avatar_id": 5, "score": 0 },
+          "team2": { "id": "team_11", "name": "الفهد",   "avatar_url": null, "avatar_id": 7, "score": 0 },
+          "winner": null
+        },
+        {
+          "id": "match_2_3",
+          "game_id": "game_3012",
+          "position": 3,
+          "status": "pending",
+          "team1": { "id": "team_14", "name": "الحصان",  "avatar_url": null, "avatar_id": 3, "score": 0 },
+          "team2": { "id": "team_16", "name": "test",     "avatar_url": null, "avatar_id": 1, "score": 0 },
+          "winner": null
+        }
+      ]
+    },
+    {
+      "round_number": 3,
+      "name": "نصف النهائي",
+      "matches": [
+        {
+          "id": "match_3_0",
+          "game_id": "game_3013",
+          "position": 0,
+          "status": "pending",
+          "team1": { "id": "team_1",  "name": "الأسد",   "avatar_url": null, "avatar_id": 4, "score": 0 },
+          "team2": { "id": "team_5",  "name": "النسر",   "avatar_url": null, "avatar_id": 5, "score": 0 },
+          "winner": null
+        },
+        {
+          "id": "match_3_1",
+          "game_id": "game_3014",
+          "position": 1,
+          "status": "pending",
+          "team1": null,
+          "team2": null,
+          "winner": null
+        }
+      ]
+    },
+    {
+      "round_number": 4,
+      "name": "النهائي",
+      "matches": [
+        {
+          "id": "match_4_0",
+          "game_id": "game_3015",
+          "position": 0,
+          "status": "pending",
+          "team1": null,
+          "team2": null,
+          "winner": null
+        }
+      ]
+    }
+  ]
+}

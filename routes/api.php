@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController};
+use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController, TournamentController};
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -10,6 +10,7 @@ Route::post('login', [AuthController::class, 'userLogin']);
 Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::put('profile/update', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::delete('delete-account', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
 Route::post('send-otp', [PasswordController::class, 'sendPasswordRestOtp']);
 Route::post('confirm-otp', [PasswordController::class, 'confirmPasswordOtp']);
@@ -24,7 +25,7 @@ Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('packages', [PackageController::class, 'index']);
     Route::get('subscriptions', [PackageController::class, 'getSubscriptions']);
-     Route::post('subscriptions/{subscription}/cancel', [PackageController::class, 'cancelSubscription']);
+    Route::post('subscriptions/{subscription}/cancel', [PackageController::class, 'cancelSubscription']);
     Route::post('packages/subscribe', [PackageController::class, 'subscribe']);
     Route::post('packages/apply-coupon', [PackageController::class, 'applyCoupon']);
     Route::post('games', [GameController::class, 'store']);
@@ -36,4 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('teams/{team}/use-helping-method', [GameController::class, 'useHelpingMethod']);
     Route::post('teams/add-question-score', [GameController::class, 'addQuestionScore']);
     Route::put('teams/{team}/update-score', [GameController::class, 'updateScore']);
+
+    Route::post('tournaments', [TournamentController::class, 'store']);
+    Route::get('tournaments/{tournament}', [TournamentController::class, 'show']);
+    Route::post('tournaments/{tournament}/matches/{match}/winner', [TournamentController::class, 'setWinner']);
+    Route::patch('tournaments/{tournament}/matches/{match}/game-id', [TournamentController::class, 'linkGameId']);
 });
