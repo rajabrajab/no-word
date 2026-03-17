@@ -51,6 +51,7 @@ class GameBoardResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'is_tournament_game' => (bool) $this->tournament_game,
             'teams' => $teams->values(),
             'categories' => $categories,
         ];
