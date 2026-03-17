@@ -25,6 +25,11 @@ class EditQuestion extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $data['generate_qr_code'] = !empty($this->record->qr_code);
+        
+        // Load country_id from the question's category
+        if ($this->record->category && $this->record->category->country_id) {
+            $data['country_id'] = $this->record->category->country_id;
+        }
 
         return $data;
     }
@@ -32,6 +37,7 @@ class EditQuestion extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         unset($data['generate_qr_code']);
+        unset($data['country_id']); // Country is only used for filtering categories
 
         return $data;
     }

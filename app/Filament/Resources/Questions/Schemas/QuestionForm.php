@@ -8,6 +8,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Checkbox;
 use App\Models\Category;
+use App\Models\Country;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -18,10 +19,42 @@ class QuestionForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
+            Select::make('country_id')
+                ->label(__('panel.country'))
+                ->options(Country::all()->pluck('name', 'id'))
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function (callable $set) {
+                    $set('category_id', null);
+                })
+                ->columnSpanFull(),
+
             Select::make('category_id')
                 ->label(__('panel.category'))
-                ->options(Category::pluck('name', 'id'))
+                ->options(function (callable $get) {
+                    $countryId = $get('country_id');
+                    $currentCategoryId = $get('category_id');
+                    
+                    if (!$countryId) {
+                        // If no country selected but there's a current category, show it
+                        if ($currentCategoryId) {
+                            return Category::where('id', $currentCategoryId)->pluck('name', 'id');
+                        }
+                        return [];
+                    }
+                    
+                    $query = Category::where('country_id', $countryId);
+                    
+                    // When editing, include the current category even if it doesn't match the country
+                    // (handles data inconsistency cases)
+                    if ($currentCategoryId) {
+                        $query->orWhere('id', $currentCategoryId);
+                    }
+                    
+                    return $query->pluck('name', 'id');
+                })
                 ->required()
+                ->reactive()
                 ->columnSpanFull(),
 
             TextInput::make('question')

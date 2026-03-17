@@ -9,7 +9,6 @@ class PackageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Get subscribed_package_id from request
         $subscribedPackageId = $request->get('subscribed_package_id');
         $isSubscribed = $subscribedPackageId === $this->id;
 

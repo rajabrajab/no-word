@@ -18,6 +18,7 @@ class CreateQuestion extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         unset($data['generate_qr_code']);
+        unset($data['country_id']); // Country is only used for filtering categories
 
         return $data;
     }

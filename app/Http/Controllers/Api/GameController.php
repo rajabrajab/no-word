@@ -152,7 +152,7 @@ class GameController extends Controller
 
     public function myGames(Request $request)
     {
-        $games = Game::where('user_id', auth()->user()->id)
+        $games = Game::where('user_id', auth()->user()->id)->where('tournament_game', false)
             ->with([
                 'teams.usedHelpingMethods',
                 'questions.category'
