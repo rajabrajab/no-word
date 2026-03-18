@@ -7,6 +7,7 @@ use App\Helpers\PhoneHelper;
 use App\Mail\OtpMail;
 use App\Models\User;
 use App\Models\VendorRegistrationRequest;
+use App\Traits\ImageUploadTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Exception;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AuthService
 {
+    use ImageUploadTrait;
 
     protected $status = false;
     protected $message = '';
@@ -115,11 +117,27 @@ class AuthService
     {
         $user = Auth::user();
 
+        if (array_key_exists('profile_image', $data)) {
+            if ($data['profile_image'] === null) {
+                if ($user->profile_image) {
+                    $this->deleteImage($user->profile_image);
+                }
+                $data['profile_image'] = null;
+            } elseif ($data['profile_image'] instanceof \Illuminate\Http\UploadedFile) {
+                if ($user->profile_image) {
+                    $this->deleteImage($user->profile_image);
+                }
+                $data['profile_image'] = $this->uploadImage(
+                    $data['profile_image'],
+                    'profile-images'
+                );
+            }
+        }
+
         $user->update($data);
-
         return $user;
-
     }
+
 
     public function sendPasswordRestOtp($email)
     {

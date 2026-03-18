@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
@@ -60,17 +61,10 @@ class AuthController extends Controller
         return response()->sendResponse([],'Logout successfully.');
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request)
     {
-        $data = $request->validate([
-            'full_name' => 'sometimes|string|max:255',
-            'nickname' => 'sometimes|string|max:255',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
 
-        if (!empty($data['profile_image'])) {
-            $data['profile_image'] = $data['profile_image']->store('profile_images', 'public');
-        }
+        $data = $request->validated();
 
         $user = $this->authService->updateProfile($data);
 
