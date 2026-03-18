@@ -82,4 +82,25 @@ return [
     'score' => 'النقاط',
 
     'generate_qr_code' => 'إنشاء QR Code',
+
+    'policiesConditions' => 'السياسات والشروط',
+
+    'policies_tabs' => 'السياسات والشروط',
+
+    'privacy_policy' => 'سياسة الخصوصية',
+    'terms_conditions' => 'الشروط والأحكام',
+
+    'title' => 'العنوان',
+
+    'title_en' => 'العنوان (إنجليزي)',
+    'title_ar' => 'العنوان (عربي)',
+
+    'content_en' => 'المحتوى (إنجليزي)',
+    'content_ar' => 'المحتوى (عربي)',
+
+    'last_updated' => 'تاريخ التحديث',
+
+    'policies_conditions' => 'السياسات والشروط',
+    'privacy_policy' => 'سياسة الخصوصية',
+    'terms_conditions' => 'الشروط والأحكام',
 ];

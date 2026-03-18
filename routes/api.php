@@ -45,3 +45,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('tournaments/create-game', [TournamentController::class, 'createMatchGame']);
     Route::patch('tournaments/{tournament}/matches/{match}/game-id', [TournamentController::class, 'linkGameId']);
 });
+
+Route::get('/policies-conditions', [PoliciesConditionController::class, 'getPoliciesConditions']);

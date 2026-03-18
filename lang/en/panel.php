@@ -81,4 +81,29 @@ return [
     'score' => 'Score',
 
     'generate_qr_code' => 'Generate QR Code',
+
+
+    'systemManagement' => 'System Management',
+    'policiesConditions' => 'Policies & Conditions',
+
+    'policies_tabs' => 'Policies & Conditions',
+
+    'privacy_policy' => 'Privacy Policy',
+    'terms_conditions' => 'Terms & Conditions',
+
+    'title' => 'Title',
+
+    'title_en' => 'Title (English)',
+    'title_ar' => 'Title (Arabic)',
+
+    'content_en' => 'Content (English)',
+    'content_ar' => 'Content (Arabic)',
+
+    'last_updated' => 'Last Updated',
+
+    'policies_conditions' => 'Policies & Conditions',
+    'privacy_policy' => 'Privacy Policy',
+    'terms_conditions' => 'Terms & Conditions',
+
+    'policiesCondition' => 'Policies & Conditions',
 ];
