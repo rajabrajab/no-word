@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController, TournamentController};
+use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController, TournamentController, PoliciesConditionController};
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -9,7 +9,7 @@ Route::post('resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('login', [AuthController::class, 'userLogin']);
 Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::put('profile/update', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::post('profile/update', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::delete('delete-account', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
 Route::post('send-otp', [PasswordController::class, 'sendPasswordRestOtp']);

@@ -106,4 +106,19 @@ return [
     'terms_conditions' => 'Terms & Conditions',
 
     'policiesCondition' => 'Policies & Conditions',
+
+    // Excel import/export (Questions)
+    'download_template' => 'Download template',
+    'export' => 'Export',
+    'import' => 'Import',
+    'excel_file' => 'Excel file',
+
+    'excel_id' => 'ID',
+    'excel_category_id' => 'Category ID',
+    'excel_question' => 'Question',
+    'excel_answer' => 'Answer',
+    'excel_hint' => 'Hint',
+    'excel_score' => 'Score',
+    'excel_media' => 'Media',
+    'excel_media_type' => 'Media type',
 ];

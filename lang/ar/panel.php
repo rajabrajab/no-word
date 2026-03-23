@@ -103,4 +103,19 @@ return [
     'policies_conditions' => 'السياسات والشروط',
     'privacy_policy' => 'سياسة الخصوصية',
     'terms_conditions' => 'الشروط والأحكام',
+
+    // Excel import/export (Questions)
+    'download_template' => 'تحميل نموذج',
+    'export' => 'تصدير',
+    'import' => 'استيراد',
+    'excel_file' => 'ملف إكسل',
+
+    'excel_id' => 'المعرف',
+    'excel_category_id' => 'معرف الفئة',
+    'excel_question' => 'السؤال',
+    'excel_answer' => 'الإجابة',
+    'excel_hint' => 'التلميح',
+    'excel_score' => 'النقاط',
+    'excel_media' => 'الوسائط',
+    'excel_media_type' => 'نوع الوسائط',
 ];
