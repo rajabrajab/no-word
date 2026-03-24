@@ -8,7 +8,7 @@ use libphonenumber\NumberParseException;
 
 class PhoneHelper
 {
-    private static $regions = ['SA'];
+    private static $regions = ['SA','KW','AE','Qa','Bah','OM'];
 
     public static function normalize(string $phone): ?string
     {
