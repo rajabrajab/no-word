@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Coupons\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Table;
@@ -37,15 +38,15 @@ class CouponsTable
                 //
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
+                ActionGroup::make([
                     EditAction::make(),
                     DeleteAction::make(),
                     Action::make('changeStatus')
                         ->label(fn ($record) => $record->is_active ? __('panel.make_inactive') : __('panel.make_active'))
                         ->icon(fn ($record) => $record->is_active ? Heroicon::XMark : Heroicon::Check)
                         ->color(fn ($record) => $record->is_active ? 'danger' : 'success')
-                        ->action(fn ($record) => $record->update(['is_active' => !$record->is_active])),
-                ]),
+                        ->action(fn ($record) => $record->update(['is_active' => ! $record->is_active])),
+                ])->icon('heroicon-m-ellipsis-vertical'),
             ]);
     }
 }

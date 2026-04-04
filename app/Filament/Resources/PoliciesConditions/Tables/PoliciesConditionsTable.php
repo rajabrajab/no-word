@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PoliciesConditions\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -41,8 +42,10 @@ class PoliciesConditionsTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -11,7 +11,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use App\Models\Country;
+use App\Filament\Resources\Questions\QuestionResource;
 use App\Filament\Resources\Categories\CategoryResource;
 
 class CategoriesTable
@@ -35,12 +35,31 @@ class CategoriesTable
                 TextColumn::make('country.name')->label(__('panel.country'))->searchable(),
             ])
             ->filters([
-
+                SelectFilter::make('country_id')
+                    ->label(__('panel.country'))
+                    ->relationship('country', 'name')
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 \Filament\Actions\ActionGroup::make([
                     EditAction::make(),
                     DeleteAction::make(),
+                    Action::make('viewQuestions')
+                        ->label(__('panel.view_questions'))
+                        ->icon('heroicon-m-queue-list')
+                        ->color('gray')
+                        ->url(function ($record): string {
+                            $base = QuestionResource::getUrl('index');
+
+                            return $base.(str_contains($base, '?') ? '&' : '?').http_build_query([
+                                'filters' => [
+                                    'category_id' => [
+                                        'value' => (string) $record->getKey(),
+                                    ],
+                                ],
+                            ]);
+                        }),
                     Action::make('addQuestions')
                         ->label(__('panel.add_questions') ?? 'Add Questions')
                         ->icon('heroicon-m-plus')

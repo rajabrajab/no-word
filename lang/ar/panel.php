@@ -19,6 +19,26 @@ return [
     'game_settings' => 'إعدادات اللعبة',
 
     'add_questions' => 'إضافة الأسئلة',
+    'view_questions' => 'عرض الأسئلة',
+    'view_country_categories' => 'عرض فئات هذه الدولة',
+    'view_country_questions' => 'عرض أسئلة هذه الدولة',
+
+    'bulk_excel_section_title' => 'إضافة أسئلة من ملف Excel',
+    'bulk_excel_section_description' => 'ابدأ بتنزيل القالب. في كل صف اكتب السؤال والجواب وما يطلبه عنوان الأعمدة (مثل التلميح أو النقاط). لا تحتاج لاختيار الفئة داخل الملف—كل ما تدخله يُضاف للفئة التي فتحتها من هنا. إذا احتاج السؤال صورة، ضعها في نفس صفه. احفظ الملف في Excel ثم عد واستخدم «استيراد Excel».',
+    'bulk_excel_download_template' => 'تنزيل قالب Excel',
+    'bulk_excel_import' => 'استيراد Excel',
+    'bulk_excel_media_column' => 'صورة السؤال',
+    'bulk_excel_media_column_hint' => 'ضع الصورة في نفس صف السؤال. في Excel: من القائمة إدراج، اختر صورًا ثم من هذا الجهاز، وحدد ملف الصورة.',
+    'bulk_excel_invalid_header' => 'صف العناوين غير صالح. نزّل القالب من هذه الصفحة واستخدمه دون تغيير الصف الأول.',
+    'bulk_excel_invalid_category' => 'هذه الفئة لم تعد موجودة.',
+    'bulk_excel_no_file' => 'لم يتم رفع ملف.',
+    'bulk_excel_file_missing' => 'تعذر قراءة الملف المرفوع. أعد رفع الملف.',
+    'bulk_excel_row' => 'الصف',
+    'bulk_excel_import_partial' => 'تم استيراد :created سؤالاً؛ تم تخطي :skipped صفاً. راجع الأخطاء أدناه.',
+    'bulk_excel_import_done' => 'تم استيراد :count سؤالاً بنجاح.',
+    'bulk_excel_import_failed' => 'فشل الاستيراد. صحّح الأخطاء في الملف ثم أعد المحاولة.',
+    'bulk_manual_section_title' => 'أو أضف الأسئلة بنفسك',
+    'bulk_manual_section_description' => 'استخدم الحقول أدناه لإدخال الأسئلة واحداً تلو الآخر أو عدة أسئلة متتالية. يمكنك إرفاق صورة أو صوت أو فيديو لكل سؤال إذا احتجت. اضغط حفظ عندما تريد الاحتفاظ بها.',
 
     'save' => 'حفظ',
     'cancel' => 'إلغاء',
@@ -105,6 +125,7 @@ return [
     'terms_conditions' => 'الشروط والأحكام',
 
     // Excel import/export (Questions)
+    'export_questions_to_excel' => 'تصدير الأسئلة إلى Excel',
     'download_template' => 'تحميل نموذج',
     'export' => 'تصدير',
     'import' => 'استيراد',
@@ -118,4 +139,9 @@ return [
     'excel_score' => 'النقاط',
     'excel_media' => 'الوسائط',
     'excel_media_type' => 'نوع الوسائط',
+    'bulk_create_questions_title' => 'إضافة الأسئلة للفئة :category',
+
+    'system_management' => 'إدارة النظام',
+    'make_inactive' => 'تعطيل',
+    'make_active' => 'تفعيل',
 ];

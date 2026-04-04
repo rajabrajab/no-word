@@ -23,7 +23,7 @@ class PoliciesConditionResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('panel.systemManagement');
+        return __('panel.system_management');
     }
 
     public static function getTitle(): ?string
