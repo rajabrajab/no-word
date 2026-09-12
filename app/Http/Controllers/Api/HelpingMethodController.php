@@ -12,7 +12,7 @@ class HelpingMethodController extends Controller
 {
     public function index(Request $request)
     {
-        $helpingMethods = HelpingMethod::all();
+        $helpingMethods = HelpingMethod::ordered()->get();
 
         return response()->sendResponse(
             HelpingMethodResource::collection($helpingMethods),
@@ -20,4 +20,3 @@ class HelpingMethodController extends Controller
         );
     }
 }
-

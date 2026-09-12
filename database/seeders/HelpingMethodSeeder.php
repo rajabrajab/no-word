@@ -14,64 +14,64 @@ class HelpingMethodSeeder extends Seeder
         $sourceDir = public_path('helping_methods');
         $targetDir = 'helping_methods';
 
-        if (!Storage::disk('public')->exists($targetDir)) {
+        if (! Storage::disk('public')->exists($targetDir)) {
             Storage::disk('public')->makeDirectory($targetDir);
         }
 
-        $helpingMethods = [
-            [
-                'name' => 'اتصال بصديق',
-                'description' => 'تتيح للفريق الاتصال بصديق خارجي عبر مكالمة افتراضية
-                    (صوتية أو نصية) للحصول على مساعدة في الإجابة
-                    على السؤال، مع وقت محدود (30 ثانية).',
-                'icon_file' => 'friend_call.png',
-            ],
-            [
-                'name' => 'تغيير السؤال',
-                'description' => 'يسمح للفريق باستبدال السؤال الحالي بسؤال جديد من
- نفس الفئة، مع استخدام واحد فقط لكل لعبة.',
-                'icon_file' => 'change_qustion.png',
-            ],
-            [
-                'name' => 'تلميح عن الإجابة',
-                'description' => 'يقدم تلميحاً نصياً أو بصرياً (مثل كلمة مفتاحية أو صورة
- مرتبطة) لتوجيه الفريق نحو الإجابة الصحيحة دون
- كشفها بالكامل.',
-                'icon_file' => 'anwser_hint.png',
-            ],
-        ];
+        $helpingMethods = HelpingMethod::defaults();
 
         foreach ($helpingMethods as $method) {
-            $iconPath = null;
+            $attributes = [
+                'name' => $method['name'],
+                'description' => $method['description'],
+                'sort_order' => $method['sort_order'],
+                'deleted_at' => null,
+            ];
 
-            if (isset($method['icon_file']) && File::exists($sourceDir . '/' . $method['icon_file'])) {
-                $filename = $method['icon_file'];
-                $targetPath = $targetDir . '/' . $filename;
+            $iconPath = $this->resolveIcon($sourceDir, $targetDir, $method['icon_file']);
 
-                if (Storage::disk('public')->exists($targetPath)) {
-                    $this->command->info("Icon {$filename} already exists in storage, skipping copy.");
-                } else {
-                    $fileContents = File::get($sourceDir . '/' . $filename);
-                    Storage::disk('public')->put($targetPath, $fileContents);
-                    $this->command->info("Copied icon {$filename} to storage.");
-                }
-
-                $iconPath = $targetPath;
+            // Leave an admin-uploaded icon alone when the seeder ships none.
+            if ($iconPath !== null) {
+                $attributes['icon'] = $iconPath;
             }
 
-            HelpingMethod::updateOrCreate(
-                ['name' => $method['name']],
-                [
-                    'name' => $method['name'],
-                    'description' => $method['description'],
-                    'icon' => $iconPath,
-                ]
-            );
+            HelpingMethod::withTrashed()->updateOrCreate(['key' => $method['key']], $attributes);
 
-            $this->command->info("Seeded helping method: {$method['name']} with icon: " . ($iconPath ?? 'none'));
+            $this->command->info("Seeded helping method: {$method['name']} with icon: ".($iconPath ?? 'none'));
         }
 
-        $this->command->info("Helping methods seeding completed!");
+        // Anything outside the current set is retired rather than deleted, so the
+        // team_helping_methods rows that reference it still resolve to a name.
+        $retired = HelpingMethod::query()
+            ->whereNotIn('key', array_column($helpingMethods, 'key'))
+            ->get();
+
+        foreach ($retired as $method) {
+            $method->delete();
+            $this->command->info("Retired helping method: {$method->name}");
+        }
+
+        $this->command->info('Helping methods seeding completed!');
+    }
+
+    /**
+     * Copy a bundled icon onto the public disk and return its stored path.
+     */
+    private function resolveIcon(string $sourceDir, string $targetDir, ?string $iconFile): ?string
+    {
+        if ($iconFile === null || ! File::exists($sourceDir.'/'.$iconFile)) {
+            return null;
+        }
+
+        $targetPath = $targetDir.'/'.$iconFile;
+
+        if (Storage::disk('public')->exists($targetPath)) {
+            $this->command->info("Icon {$iconFile} already exists in storage, skipping copy.");
+        } else {
+            Storage::disk('public')->put($targetPath, File::get($sourceDir.'/'.$iconFile));
+            $this->command->info("Copied icon {$iconFile} to storage.");
+        }
+
+        return $targetPath;
     }
 }
-

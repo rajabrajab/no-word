@@ -11,10 +11,10 @@ class HelpingMethodResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'key' => $this->key,
             'name' => $this->name,
             'description' => $this->description,
-            'icon' => $this->icon ? asset('storage/' . $this->icon) : null,
+            'icon' => $this->icon ? asset('storage/'.$this->icon) : null,
         ];
     }
 }
-

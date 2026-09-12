@@ -24,6 +24,7 @@ class CategoryBulkQuestionsTemplateExport implements FromCollection, WithColumnW
             __('panel.excel_hint'),
             __('panel.excel_score'),
             __('panel.bulk_excel_media_column'),
+            __('panel.bulk_excel_answer_media_column'),
         ];
     }
 
@@ -38,6 +39,7 @@ class CategoryBulkQuestionsTemplateExport implements FromCollection, WithColumnW
             'C' => 28,
             'D' => 12,
             'E' => 30,
+            'F' => 30,
         ];
     }
 
@@ -52,9 +54,17 @@ class CategoryBulkQuestionsTemplateExport implements FromCollection, WithColumnW
                     $sheet->getRowDimension($r)->setRowHeight(80);
                 }
 
-                $hint = __('panel.bulk_excel_media_column_hint');
-                if ($hint !== '') {
-                    $comment = $sheet->getComment('E1');
+                $hints = [
+                    'E1' => __('panel.bulk_excel_media_column_hint'),
+                    'F1' => __('panel.bulk_excel_answer_media_column_hint'),
+                ];
+
+                foreach ($hints as $cell => $hint) {
+                    if ($hint === '') {
+                        continue;
+                    }
+
+                    $comment = $sheet->getComment($cell);
                     $comment->setWidth('280pt');
                     $comment->setHeight('120pt');
                     $comment->getText()->createTextRun($hint);

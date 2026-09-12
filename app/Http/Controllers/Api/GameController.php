@@ -10,15 +10,14 @@ use App\Http\Requests\ReplaceQuestionRequest;
 use App\Http\Requests\ResetGameRequest;
 use App\Http\Requests\UseHelpingMethodRequest;
 use App\Http\Resources\GameBoardResource;
-use App\Http\Resources\GameResource;
 use App\Http\Resources\MyGameResource;
 use App\Http\Resources\QuestionResource;
 use App\Models\Game;
+use App\Models\HelpingMethod;
 use App\Models\Question;
 use App\Models\Team;
 use App\Services\GameService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -73,16 +72,14 @@ class GameController extends Controller
             return response()->sendError(403, 'Unauthorized access to this team.');
         }
 
-        $helpingMethodId = $request->validated()['helping_method_id'];
+        $validated = $request->validated();
+        $helpingMethod = HelpingMethod::findOrFail($validated['helping_method_id']);
 
-
-        if($helpingMethodId == 2) {
-            $result = $this->gameService->replaceQuestion($team->game, $request->validated()['question_id']);
-        }else{
-            $result = [];
-        }
-
-        $this->gameService->useHelpingMethod($teamId, $helpingMethodId);
+        $result = $this->gameService->applyHelpingMethod(
+            $team,
+            $helpingMethod,
+            $validated['question_id'] ?? null
+        );
 
         return response()->sendResponse($result,
             'Helping method marked as used successfully.'
@@ -104,28 +101,11 @@ class GameController extends Controller
         }
 
         $question = Question::findOrFail($request->question_id);
-        $teamId = $request->team_id;
 
-        DB::transaction(function () use ($teamId, $question, $game) {
-            if ($teamId) {
-                $team = Team::findOrFail($teamId);
-
-                if ($team->game_id !== $game->id) {
-                    throw new \Exception('Team does not belong to this game.');
-                }
-
-                $team->increment('score', $question->score ?? 0);
-            }
-
-            DB::table('game_questions')
-                ->where('game_id', $game->id)
-                ->where('question_id', $question->id)
-                ->update(['is_answered' => 1]);
-        });
-
+        $result = $this->gameService->awardQuestionScore($game, $question, $request->team_id);
 
         return response()->sendResponse(
-            [],
+            $result,
             'Question marked as answered successfully.'
         );
     }
@@ -155,7 +135,7 @@ class GameController extends Controller
         $games = Game::where('user_id', auth()->user()->id)->where('tournament_game', false)
             ->with([
                 'teams.usedHelpingMethods',
-                'questions.category'
+                'questions.category',
             ])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -202,4 +182,3 @@ class GameController extends Controller
         }
     }
 }
-

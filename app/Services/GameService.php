@@ -5,23 +5,31 @@ namespace App\Services;
 use App\Http\Resources\QuestionResource;
 use App\Models\Category;
 use App\Models\Game;
+use App\Models\HelpingMethod;
 use App\Models\Question;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class GameService
 {
-    public function checkUserGamesRemaining(\App\Models\User $user): bool
+    /**
+     * Seconds added to the clock by the "زيادة وقت الإجابة" helping method.
+     */
+    public const EXTRA_TIME_SECONDS = 30;
+
+    public function checkUserGamesRemaining(User $user): bool
     {
-        if (!$user->hasRemainingGames()) {
+        if (! $user->hasRemainingGames()) {
             if ($user->has_used_default_game) {
                 throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
             }
+
             return true;
         }
+
         return false;
     }
-
 
     public function attachCategoriesAndQuestions(Game $game, array $categoryIds): void
     {
@@ -32,7 +40,7 @@ class GameService
         $game->categories()->attach($categoryIds);
 
         $selectedQuestionIds = [];
-        $scores = [200, 400, 600];
+        $scores = Category::SCORES;
 
         foreach ($categoryIds as $categoryId) {
             foreach ($scores as $score) {
@@ -53,14 +61,14 @@ class GameService
             }
         }
 
-        if (!empty($selectedQuestionIds)) {
+        if (! empty($selectedQuestionIds)) {
             $game->questions()->attach($selectedQuestionIds);
         }
     }
 
     public function createGame(array $data, int $userId): Game
     {
-        $user = \App\Models\User::findOrFail($userId);
+        $user = User::findOrFail($userId);
         $isDefault = $this->checkUserGamesRemaining($user);
 
         DB::beginTransaction();
@@ -72,7 +80,7 @@ class GameService
                 'status' => 'active',
             ]);
 
-            if (!$isDefault) {
+            if (! $isDefault) {
                 $user->decrementGamesRemaining();
             } else {
                 $user->update(['has_used_default_game' => true]);
@@ -101,11 +109,11 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create game: ' . $e->getMessage());
+            throw new \Exception('Failed to create game: '.$e->getMessage());
         }
     }
 
-    public function useHelpingMethod(int $teamId, int $helpingMethodId): bool
+    public function useHelpingMethod(int $teamId, int $helpingMethodId, ?int $questionId = null): bool
     {
         $team = Team::findOrFail($teamId);
 
@@ -117,11 +125,143 @@ class GameService
             throw new \Exception('This helping method has already been used.');
         }
 
-        $team->usedHelpingMethods()->attach($helpingMethodId);
+        $team->usedHelpingMethods()->attach($helpingMethodId, ['question_id' => $questionId]);
 
         $team->load(['avatar', 'usedHelpingMethods', 'game']);
 
         return true;
+    }
+
+    /**
+     * Spend one of the team's helping methods and return whatever payload that
+     * particular method owes the client.
+     *
+     * Marking it used and applying its effect happen together, so a method is
+     * never consumed by a call that then fails.
+     *
+     * @return array<string, mixed>|QuestionResource
+     */
+    public function applyHelpingMethod(Team $team, HelpingMethod $helpingMethod, ?int $questionId = null)
+    {
+        return DB::transaction(function () use ($team, $helpingMethod, $questionId) {
+            $this->useHelpingMethod($team->id, $helpingMethod->id, $questionId);
+
+            return match ($helpingMethod->key) {
+                HelpingMethod::CHANGE_QUESTION => $this->replaceQuestion(
+                    $team->game,
+                    $this->requireQuestionId($questionId)
+                ),
+                HelpingMethod::REVEAL_ANSWER => $this->revealAnswer(
+                    $team->game,
+                    $this->requireQuestionId($questionId)
+                ),
+                HelpingMethod::EXTRA_TIME => $this->grantExtraTime($team->game, $questionId),
+                default => [],
+            };
+        });
+    }
+
+    /**
+     * Mark a question answered and credit the team that took it.
+     *
+     * Helping methods do not affect the score: a team that spent
+     * "عطنا الإجابة" still earns the question's points.
+     *
+     * @return array{score_awarded: int}
+     */
+    public function awardQuestionScore(Game $game, Question $question, ?int $teamId): array
+    {
+        return DB::transaction(function () use ($game, $question, $teamId) {
+            $scoreAwarded = 0;
+
+            if ($teamId !== null) {
+                $team = Team::findOrFail($teamId);
+
+                if ($team->game_id !== $game->id) {
+                    throw new \Exception('Team does not belong to this game.');
+                }
+
+                $scoreAwarded = (int) ($question->score ?? 0);
+                $team->increment('score', $scoreAwarded);
+            }
+
+            DB::table('game_questions')
+                ->where('game_id', $game->id)
+                ->where('question_id', $question->id)
+                ->update(['is_answered' => 1]);
+
+            return ['score_awarded' => $scoreAwarded];
+        });
+    }
+
+    /**
+     * The answer the team just bought, including its picture when one is stored.
+     *
+     * @return array<string, mixed>
+     */
+    public function revealAnswer(Game $game, int $questionId): array
+    {
+        $question = $this->gameQuestion($game, $questionId);
+
+        return [
+            'question_id' => $question->id,
+            'answer' => $question->answer,
+            'answer_media' => $question->hasAnswerMedia()
+                ? asset('storage/'.$question->answer_media)
+                : null,
+            'answer_media_type' => $question->hasAnswerMedia() ? $question->answer_media_type : null,
+        ];
+    }
+
+    /**
+     * Extra seconds on the clock. The base time comes from the question's
+     * category tier, so the client gets the new total when there is one.
+     *
+     * @return array<string, mixed>
+     */
+    public function grantExtraTime(Game $game, ?int $questionId): array
+    {
+        $baseSeconds = null;
+
+        if ($questionId !== null) {
+            $baseSeconds = $this->gameQuestion($game, $questionId)->answerTime();
+        }
+
+        return [
+            'question_id' => $questionId,
+            'extra_seconds' => self::EXTRA_TIME_SECONDS,
+            'base_seconds' => $baseSeconds,
+            'total_seconds' => $baseSeconds === null
+                ? null
+                : $baseSeconds + self::EXTRA_TIME_SECONDS,
+        ];
+    }
+
+    /**
+     * Resolve a question that genuinely belongs to this game's board.
+     */
+    private function gameQuestion(Game $game, int $questionId): Question
+    {
+        $question = Question::query()
+            ->whereKey($questionId)
+            ->whereHas('games', fn ($query) => $query->whereKey($game->id))
+            ->with('category')
+            ->first();
+
+        if (! $question) {
+            throw new \Exception('Question not found in this game.');
+        }
+
+        return $question;
+    }
+
+    private function requireQuestionId(?int $questionId): int
+    {
+        if ($questionId === null) {
+            throw new \Exception('A question_id is required for this helping method.');
+        }
+
+        return $questionId;
     }
 
     public function getGameBoard(Game $game): Game
@@ -129,7 +269,7 @@ class GameService
         $game->load([
             'teams.usedHelpingMethods',
             'teams.avatar',
-            'questions.category'
+            'questions.category',
         ]);
 
         return $game;
@@ -173,13 +313,13 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to reset game: ' . $e->getMessage());
+            throw new \Exception('Failed to reset game: '.$e->getMessage());
         }
     }
 
     public function createRandomGame(array $data, int $userId): Game
     {
-        $user = \App\Models\User::findOrFail($userId);
+        $user = User::findOrFail($userId);
         $isDefault = $this->checkUserGamesRemaining($user);
 
         DB::beginTransaction();
@@ -191,7 +331,7 @@ class GameService
                 'status' => 'active',
             ]);
 
-            if (!$isDefault) {
+            if (! $isDefault) {
                 $user->decrementGamesRemaining();
             } else {
                 $user->update(['has_used_default_game' => true]);
@@ -226,7 +366,7 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create random game: ' . $e->getMessage());
+            throw new \Exception('Failed to create random game: '.$e->getMessage());
         }
     }
 
@@ -242,25 +382,18 @@ class GameService
                 ->select('game_questions.id as pivot_id', 'game_questions.question_id', 'questions.category_id', 'questions.score')
                 ->first();
 
-            if (!$questionToReplace) {
+            if (! $questionToReplace) {
                 throw new \Exception('Question not found in this game.');
             }
 
-            $newQuestionId = DB::selectOne("
-                SELECT id
-                FROM questions
-                WHERE category_id = ?
-                AND score = ?
-                AND id != ?
-                ORDER BY RAND()
-                LIMIT 1
-            ", [
-                $questionToReplace->category_id,
-                $questionToReplace->score,
-                $questionToReplace->question_id
-            ]);
+            $newQuestionId = Question::query()
+                ->where('category_id', $questionToReplace->category_id)
+                ->where('score', $questionToReplace->score)
+                ->whereKeyNot($questionToReplace->question_id)
+                ->inRandomOrder()
+                ->first(['id']);
 
-            if (!$newQuestionId) {
+            if (! $newQuestionId) {
                 throw new \Exception('No alternative question found with the same category and level.');
             }
 
@@ -268,11 +401,10 @@ class GameService
                 ->where('id', $questionToReplace->pivot_id)
                 ->update(['question_id' => $newQuestionId->id]);
 
-
             $game->load([
                 'teams.usedHelpingMethods',
                 'teams.avatar',
-                'questions.category'
+                'questions.category',
             ]);
 
             $newQuestion = $game->questions()
@@ -280,18 +412,17 @@ class GameService
                 ->with('category')
                 ->first();
 
-            if (!$newQuestion) {
+            if (! $newQuestion) {
                 $newQuestion = Question::with('category')->findOrFail($newQuestionId->id);
             }
 
             DB::commit();
 
-            return  new QuestionResource($newQuestion);
+            return new QuestionResource($newQuestion);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to replace question: ' . $e->getMessage());
+            throw new \Exception('Failed to replace question: '.$e->getMessage());
         }
     }
 }
-

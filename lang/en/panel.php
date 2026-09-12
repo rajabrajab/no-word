@@ -14,6 +14,7 @@ return [
     'answer' => 'Answer',
     'media' => 'Media',
     'media_type' => 'Media Type',
+    'answer_media' => 'Answer Media',
     'hint' => 'Hint',
 
     'game_settings' => 'Game Settings',
@@ -29,6 +30,8 @@ return [
     'bulk_excel_import' => 'Import Excel',
     'bulk_excel_media_column' => 'Picture for this question',
     'bulk_excel_media_column_hint' => 'Put the picture on the same row as that question. In Excel, open the Insert menu, choose Pictures, then This device, and pick your image file.',
+    'bulk_excel_answer_media_column' => 'Picture for the answer',
+    'bulk_excel_answer_media_column_hint' => 'Optional. Put the answer picture in this column, on the same row as that question. In Excel, open the Insert menu, choose Pictures, then This device, and pick your image file.',
     'bulk_excel_invalid_header' => 'Invalid header row. Download the template from this page and use it without changing the first row.',
     'bulk_excel_invalid_category' => 'This category no longer exists.',
     'bulk_excel_no_file' => 'No file uploaded.',
@@ -102,7 +105,6 @@ return [
 
     'generate_qr_code' => 'Generate QR Code',
 
-
     'systemManagement' => 'System Management',
     'policiesConditions' => 'Policies & Conditions',
 
@@ -144,8 +146,25 @@ return [
     'excel_media_type' => 'Media type',
     'bulk_create_questions_title' => 'Add questions for category :category',
 
-
     'system_management' => 'System Management',
     'make_inactive' => 'Make Inactive',
     'make_active' => 'Make Active',
+
+    'language' => 'Language',
+    'language_hint' => 'Which language this category\'s questions are written in.',
+    'language_ar' => 'Arabic',
+    'language_en' => 'English',
+    'language_both' => 'Arabic & English',
+    'seconds' => 'seconds',
+    'answer_time_200' => 'Answer time (200 points)',
+    'answer_time_400' => 'Answer time (400 points)',
+    'answer_time_600' => 'Answer time (600 points)',
+
+    'sort_order' => 'Sort order',
+    'helping_method_key' => 'Behaviour',
+    'helping_method_key_hint' => 'Controls what the app does when a team spends this help. Leave empty for a help the app only marks as used.',
+    'helping_method_extra_time' => 'Extra answer time',
+    'helping_method_change_question' => 'Change the question',
+    'helping_method_answer_hint' => 'Hint about the answer',
+    'helping_method_reveal_answer' => 'Give us the answer',
 ];

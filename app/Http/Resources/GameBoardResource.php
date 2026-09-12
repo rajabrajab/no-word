@@ -10,7 +10,7 @@ class GameBoardResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $allHelpingMethods = HelpingMethod::orderBy('id')->limit(3)->get();
+        $allHelpingMethods = HelpingMethod::ordered()->get();
 
         $teams = $this->teams->map(function ($team) use ($allHelpingMethods) {
             $usedHelpingMethods = $team->usedHelpingMethods->keyBy('id');
@@ -18,7 +18,8 @@ class GameBoardResource extends JsonResource
             $helpingMethods = $allHelpingMethods->map(function ($helpingMethod) use ($usedHelpingMethods) {
                 return [
                     'id' => $helpingMethod->id,
-                    'icon' => $helpingMethod->icon ? asset('storage/' . $helpingMethod->icon) : null,
+                    'key' => $helpingMethod->key,
+                    'icon' => $helpingMethod->icon ? asset('storage/'.$helpingMethod->icon) : null,
                     'name' => $helpingMethod->name,
                     'is_used' => $usedHelpingMethods->has($helpingMethod->id),
                 ];
@@ -27,7 +28,7 @@ class GameBoardResource extends JsonResource
             return [
                 'id' => $team->id,
                 'team_name' => $team->name,
-                'avatar' => $team->avatar ? asset('storage/' . $team->avatar->avatar_path) : null,
+                'avatar' => $team->avatar ? asset('storage/'.$team->avatar->avatar_path) : null,
                 'score' => $team->score,
                 'helping_methods' => $helpingMethods,
             ];
@@ -38,7 +39,7 @@ class GameBoardResource extends JsonResource
         $categories = $questionsByCategory->map(function ($categoryQuestions, $categoryId) {
             $category = $categoryQuestions->first()->category;
 
-            if (!$category) {
+            if (! $category) {
                 return null;
             }
 
@@ -57,4 +58,3 @@ class GameBoardResource extends JsonResource
         ];
     }
 }
-

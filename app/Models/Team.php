@@ -31,6 +31,7 @@ class Team extends BaseModel
     public function usedHelpingMethods()
     {
         return $this->belongsToMany(HelpingMethod::class, 'team_helping_methods')
+            ->withPivot('question_id')
             ->withTimestamps();
     }
 
@@ -59,4 +60,3 @@ class Team extends BaseModel
         return $this->tournament_id !== null;
     }
 }
-

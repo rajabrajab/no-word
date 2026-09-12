@@ -15,6 +15,7 @@ class CategoryController extends Controller
         $query = Category::query()
             ->with('country')
             ->byCountry($request->country_id)
+            ->byLanguage($request->language)
             ->search();
 
         $categories = $query->get();
@@ -25,4 +26,3 @@ class CategoryController extends Controller
         );
     }
 }
-

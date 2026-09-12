@@ -13,11 +13,17 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'image' => $this->image ? asset('storage/' . $this->image) : null,
+            'language' => $this->language,
+            // Keyed by name rather than by score: JsonResource re-indexes nested
+            // arrays whose keys are all numeric, which would drop the scores.
+            'answer_times' => collect($this->answerTimes())
+                ->map(fn ($seconds, $score) => ['score' => $score, 'seconds' => $seconds])
+                ->values()
+                ->all(),
+            'image' => $this->image ? asset('storage/'.$this->image) : null,
             'country' => $this->whenLoaded('country', function () {
                 return new CountryResource($this->country);
             }),
         ];
     }
 }
-

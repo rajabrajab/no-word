@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Categories\Pages;
 
 use App\Exports\CategoryBulkQuestionsTemplateExport;
 use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\Questions\Schemas\QuestionForm;
 use App\Models\Category;
+use App\Models\Question;
 use App\Services\CategoryBulkQuestionsExcelImporter;
 use App\Services\QrCodeService;
 use Filament\Actions\Action;
@@ -18,9 +20,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BulkCreateQuestions extends Page implements HasForms
@@ -45,7 +45,7 @@ class BulkCreateQuestions extends Page implements HasForms
         $this->record = $record;
         $this->form->fill([
             'questions' => [
-                ['question' => '', 'answer' => '', 'hint' => '', 'score' => null, 'media' => null],
+                ['question' => '', 'answer' => '', 'hint' => '', 'score' => null, 'media' => null, 'answer_media' => null],
             ],
         ]);
     }
@@ -59,66 +59,52 @@ class BulkCreateQuestions extends Page implements HasForms
                     ->minItems(1)
                     ->columns(1)
                     ->schema([
-                            Textarea::make('question')
-                                ->label(__('panel.question'))
-                                ->rows(3)
-                                ->required(),
+                        Textarea::make('question')
+                            ->label(__('panel.question'))
+                            ->rows(3)
+                            ->required(),
 
-                            TextInput::make('answer')
-                                ->label(__('panel.answer'))
-                                ->required(),
+                        TextInput::make('answer')
+                            ->label(__('panel.answer'))
+                            ->required(),
 
-                            TextInput::make('hint')
-                                ->label(__('panel.hint')),
+                        TextInput::make('hint')
+                            ->label(__('panel.hint')),
 
-                            TextInput::make('score')
-                                ->label(__('panel.score'))
-                                ->numeric()
-                                ->minValue(0),
+                        TextInput::make('score')
+                            ->label(__('panel.score'))
+                            ->numeric()
+                            ->minValue(0),
 
-                            FileUpload::make('media')
-                                ->label(__('panel.media'))
-                                ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
-                                ->disk('public')
-                                ->directory('questions')
-                                ->visibility('public')
-                                ->maxFiles(1)
-                                ->columnSpanFull()
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    if (!$state) {
-                                        $set('media_type', null);
-                                        return;
-                                    }
+                        FileUpload::make('media')
+                            ->label(__('panel.media'))
+                            ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
+                            ->disk('public')
+                            ->directory('questions')
+                            ->visibility('public')
+                            ->maxFiles(1)
+                            ->columnSpanFull()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('media_type', QuestionForm::resolveMediaType($state));
+                            }),
 
-                                    $mime = null;
+                        Hidden::make('media_type')->default(''),
 
-                                    if ($state instanceof TemporaryUploadedFile) {
-                                        $mime = $state->getMimeType();
-                                    } elseif (is_string($state)) {
-                                        $fullPath = Storage::disk('public')->path($state);
-                                        $mime = File::exists($fullPath) ? File::mimeType($fullPath) : null;
-                                    }
+                        FileUpload::make('answer_media')
+                            ->label(__('panel.answer_media'))
+                            ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
+                            ->disk('public')
+                            ->directory('answers')
+                            ->visibility('public')
+                            ->maxFiles(1)
+                            ->columnSpanFull()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('answer_media_type', QuestionForm::resolveMediaType($state));
+                            }),
 
-                                    if (is_string($mime)) {
-                                        if (str_starts_with($mime, 'image/')) {
-                                            $set('media_type', 'image');
-                                            return;
-                                        }
-                                        if (str_starts_with($mime, 'video/')) {
-                                            $set('media_type', 'video');
-                                            return;
-                                        }
-                                        if (str_starts_with($mime, 'audio/')) {
-                                            $set('media_type', 'audio');
-                                            return;
-                                        }
-                                    }
-
-                                    $set('media_type', null);
-                                }),
-
-                            Hidden::make('media_type')->default(''),
+                        Hidden::make('answer_media_type')->default(''),
                     ])
                     ->columnSpanFull(),
             ])
@@ -241,6 +227,7 @@ class BulkCreateQuestions extends Page implements HasForms
                 ->title(__('panel.no_questions_to_save') ?: 'No questions to save')
                 ->warning()
                 ->send();
+
             return;
         }
 
@@ -256,7 +243,7 @@ class BulkCreateQuestions extends Page implements HasForms
                 $score = $item['score'] ?? null;
                 $score = $score === '' || $score === null ? null : (int) $score;
 
-                $question = \App\Models\Question::create([
+                $question = Question::create([
                     'category_id' => $this->record->id,
                     'question' => $item['question'],
                     'answer' => $item['answer'],
@@ -264,6 +251,8 @@ class BulkCreateQuestions extends Page implements HasForms
                     'score' => $score,
                     'media' => $mediaPath,
                     'media_type' => $item['media_type'] ?? null,
+                    'answer_media' => $item['answer_media'] ?? null,
+                    'answer_media_type' => $item['answer_media_type'] ?? null,
                 ]);
 
                 $question->update([
@@ -277,9 +266,7 @@ class BulkCreateQuestions extends Page implements HasForms
             ->success()
             ->send();
 
-        $this->redirect(\App\Filament\Resources\Categories\CategoryResource::getUrl('index'));
+        $this->redirect(CategoryResource::getUrl('index'));
 
     }
 }
-
-

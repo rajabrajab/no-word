@@ -14,42 +14,82 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'التاريخ',
                 'description' => 'أسئلة عن التاريخ العربي والإسلامي والعالمي',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'الجغرافيا',
                 'description' => 'أسئلة عن الجغرافيا والبلدان والمدن',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'العلوم',
                 'description' => 'أسئلة عن العلوم الطبيعية والفيزياء والكيمياء',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'الأدب',
                 'description' => 'أسئلة عن الأدب العربي والعالمي والشعر',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'الرياضة',
                 'description' => 'أسئلة عن الرياضة والألعاب الأولمبية',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'الفنون',
                 'description' => 'أسئلة عن الفنون والرسم والموسيقى',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'التراث',
                 'description' => 'أسئلة عن التراث والثقافة الشعبية',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
             ],
             [
                 'name' => 'الدين',
                 'description' => 'أسئلة دينية عن الإسلام والديانات الأخرى',
-                'country_id' => null,
+                'language' => Category::LANGUAGE_BOTH,
+            ],
+            [
+                'name' => 'أغاني عربية',
+                'description' => 'أسئلة عن الأغاني والمطربين العرب',
+                'language' => Category::LANGUAGE_AR,
+            ],
+            [
+                'name' => 'أغاني إنجليزية',
+                'description' => 'أسئلة عن الأغاني والفنانين الأجانب',
+                'language' => Category::LANGUAGE_EN,
+            ],
+            [
+                'name' => 'عام',
+                'description' => 'أسئلة منوعة في مختلف المجالات',
+                'language' => Category::LANGUAGE_BOTH,
+            ],
+            [
+                'name' => 'أمثال',
+                'description' => 'أسئلة عن الأمثال الشعبية ومعانيها',
+                'language' => Category::LANGUAGE_BOTH,
+            ],
+            [
+                'name' => 'شخصيات',
+                'description' => 'أسئلة عن شخصيات مشهورة وتاريخية',
+                'language' => Category::LANGUAGE_BOTH,
+            ],
+            [
+                'name' => 'فن عربي',
+                'description' => 'أسئلة عن الأفلام والمسلسلات والفن العربي',
+                'language' => Category::LANGUAGE_AR,
+            ],
+            [
+                'name' => 'فن إنجليزي',
+                'description' => 'أسئلة عن الأفلام والمسلسلات الأجنبية',
+                'language' => Category::LANGUAGE_EN,
+            ],
+            [
+                'name' => 'أنمي',
+                'description' => 'أسئلة عن الأنمي والشخصيات اليابانية',
+                'language' => Category::LANGUAGE_BOTH,
             ],
         ];
 
@@ -57,20 +97,22 @@ class CategorySeeder extends Seeder
 
         if ($countries->isEmpty()) {
             $this->command->warn('No active countries found. Please seed countries first.');
+
             return;
         }
 
         foreach ($countries as $country) {
             foreach ($categories as $category) {
+                // Answer times are intentionally left out so the column defaults
+                // (90/60/30) apply on create and admin edits survive re-seeding.
                 Category::updateOrCreate(
                     [
                         'name' => $category['name'],
                         'country_id' => $country->id,
                     ],
                     [
-                        'name' => $category['name'],
                         'description' => $category['description'],
-                        'country_id' => $country->id,
+                        'language' => $category['language'],
                     ]
                 );
             }
@@ -79,4 +121,3 @@ class CategorySeeder extends Seeder
         $this->command->info('Categories seeded successfully for all countries!');
     }
 }
-

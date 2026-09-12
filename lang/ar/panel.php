@@ -15,6 +15,7 @@ return [
     'hint' => 'التلميح',
     'media' => 'الوسائط',
     'media_type' => 'نوع الوسائط',
+    'answer_media' => 'وسائط الجواب',
 
     'game_settings' => 'إعدادات اللعبة',
 
@@ -29,6 +30,8 @@ return [
     'bulk_excel_import' => 'استيراد Excel',
     'bulk_excel_media_column' => 'صورة السؤال',
     'bulk_excel_media_column_hint' => 'ضع الصورة في نفس صف السؤال. في Excel: من القائمة إدراج، اختر صورًا ثم من هذا الجهاز، وحدد ملف الصورة.',
+    'bulk_excel_answer_media_column' => 'صورة الجواب',
+    'bulk_excel_answer_media_column_hint' => 'اختياري. ضع صورة الجواب في هذا العمود، في نفس صف السؤال. في Excel: من القائمة إدراج، اختر صورًا ثم من هذا الجهاز، وحدد ملف الصورة.',
     'bulk_excel_invalid_header' => 'صف العناوين غير صالح. نزّل القالب من هذه الصفحة واستخدمه دون تغيير الصف الأول.',
     'bulk_excel_invalid_category' => 'هذه الفئة لم تعد موجودة.',
     'bulk_excel_no_file' => 'لم يتم رفع ملف.',
@@ -144,4 +147,22 @@ return [
     'system_management' => 'إدارة النظام',
     'make_inactive' => 'تعطيل',
     'make_active' => 'تفعيل',
+
+    'language' => 'اللغة',
+    'language_hint' => 'لغة أسئلة هذه الفئة.',
+    'language_ar' => 'عربي',
+    'language_en' => 'إنجليزي',
+    'language_both' => 'عربي وإنجليزي',
+    'seconds' => 'ثانية',
+    'answer_time_200' => 'وقت الإجابة (200 نقطة)',
+    'answer_time_400' => 'وقت الإجابة (400 نقطة)',
+    'answer_time_600' => 'وقت الإجابة (600 نقطة)',
+
+    'sort_order' => 'الترتيب',
+    'helping_method_key' => 'السلوك',
+    'helping_method_key_hint' => 'يحدد ما يفعله التطبيق عند استخدام الفريق لهذه المساعدة. اتركه فارغاً للمساعدة التي يكتفي التطبيق بتسجيل استخدامها.',
+    'helping_method_extra_time' => 'زيادة وقت الإجابة',
+    'helping_method_change_question' => 'تغيير السؤال',
+    'helping_method_answer_hint' => 'تلميح عن الإجابة',
+    'helping_method_reveal_answer' => 'عطنا الإجابة',
 ];

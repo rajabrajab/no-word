@@ -10,7 +10,7 @@ class TeamResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $allHelpingMethods = HelpingMethod::orderBy('id')->limit(3)->get();
+        $allHelpingMethods = HelpingMethod::ordered()->get();
 
         $usedHelpingMethods = $this->relationLoaded('usedHelpingMethods')
             ? $this->usedHelpingMethods->keyBy('id')
@@ -18,11 +18,13 @@ class TeamResource extends JsonResource
 
         $helpingMethods = $allHelpingMethods->map(function ($helpingMethod) use ($usedHelpingMethods) {
             $used = $usedHelpingMethods->has($helpingMethod->id);
+
             return [
                 'id' => $helpingMethod->id,
+                'key' => $helpingMethod->key,
                 'name' => $helpingMethod->name,
                 'description' => $helpingMethod->description,
-                'icon' => $helpingMethod->icon ? asset('storage/' . $helpingMethod->icon) : null,
+                'icon' => $helpingMethod->icon ? asset('storage/'.$helpingMethod->icon) : null,
                 'used' => $used,
                 'used_at' => $used ? $usedHelpingMethods->get($helpingMethod->id)->pivot->used_at : null,
             ];
@@ -40,4 +42,3 @@ class TeamResource extends JsonResource
         ];
     }
 }
-

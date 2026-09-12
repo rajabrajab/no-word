@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\Categories\Tables;
 
+use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\Questions\QuestionResource;
+use App\Models\Category;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\Action;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use App\Filament\Resources\Questions\QuestionResource;
-use App\Filament\Resources\Categories\CategoryResource;
 
 class CategoriesTable
 {
@@ -22,16 +24,20 @@ class CategoriesTable
             ->columnManager(false)
             ->columns([
                 ImageColumn::make('image')
-                ->disk('public')
-                ->size(60)
-                ->circular()
-                ->label(false),
+                    ->disk('public')
+                    ->size(60)
+                    ->circular()
+                    ->label(false),
                 TextColumn::make('name')->label(__('panel.name'))->searchable(),
                 TextColumn::make('description')
                     ->label(__('panel.description'))
                     ->limit(50)
                     ->wrap()
                     ->searchable(),
+                TextColumn::make('language')
+                    ->label(__('panel.language'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => __('panel.language_'.$state)),
                 TextColumn::make('country.name')->label(__('panel.country'))->searchable(),
             ])
             ->filters([
@@ -40,9 +46,16 @@ class CategoriesTable
                     ->relationship('country', 'name')
                     ->searchable()
                     ->preload(),
+                SelectFilter::make('language')
+                    ->label(__('panel.language'))
+                    ->options([
+                        Category::LANGUAGE_AR => __('panel.language_ar'),
+                        Category::LANGUAGE_EN => __('panel.language_en'),
+                        Category::LANGUAGE_BOTH => __('panel.language_both'),
+                    ]),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
+                ActionGroup::make([
                     EditAction::make(),
                     DeleteAction::make(),
                     Action::make('viewQuestions')

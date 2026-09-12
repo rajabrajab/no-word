@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\Questions\Schemas;
 
-use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Checkbox;
 use App\Models\Category;
 use App\Models\Country;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class QuestionForm
 {
@@ -34,23 +34,24 @@ class QuestionForm
                 ->options(function (callable $get) {
                     $countryId = $get('country_id');
                     $currentCategoryId = $get('category_id');
-                    
-                    if (!$countryId) {
+
+                    if (! $countryId) {
                         // If no country selected but there's a current category, show it
                         if ($currentCategoryId) {
                             return Category::where('id', $currentCategoryId)->pluck('name', 'id');
                         }
+
                         return [];
                     }
-                    
+
                     $query = Category::where('country_id', $countryId);
-                    
+
                     // When editing, include the current category even if it doesn't match the country
                     // (handles data inconsistency cases)
                     if ($currentCategoryId) {
                         $query->orWhere('id', $currentCategoryId);
                     }
-                    
+
                     return $query->pluck('name', 'id');
                 })
                 ->required()
@@ -91,39 +92,27 @@ class QuestionForm
                 ->columnSpanFull()
                 ->reactive()
                 ->afterStateUpdated(function ($state, callable $set) {
-                    if (!$state) {
-                        $set('media_type', null);
-                        return;
-                    }
-
-                    $mime = null;
-
-                    if ($state instanceof TemporaryUploadedFile) {
-                        $mime = $state->getMimeType();
-                    } elseif (is_string($state)) {
-                        $fullPath = Storage::disk('public')->path($state);
-                        $mime = File::exists($fullPath) ? File::mimeType($fullPath) : null;
-                    }
-
-                    if (is_string($mime)) {
-                        if (str_starts_with($mime, 'image/')) {
-                            $set('media_type', 'image');
-                            return;
-                        }
-                        if (str_starts_with($mime, 'video/')) {
-                            $set('media_type', 'video');
-                            return;
-                        }
-                        if (str_starts_with($mime, 'audio/')) {
-                            $set('media_type', 'audio');
-                            return;
-                        }
-                    }
-
-                    $set('media_type', null);
+                    $set('media_type', self::resolveMediaType($state));
                 }),
 
             Hidden::make('media_type')
+                ->default(''),
+
+            FileUpload::make('answer_media')
+                ->label(__('panel.answer_media'))
+                ->acceptedFileTypes(['image/*', 'video/*', 'audio/*'])
+                ->multiple(false)
+                ->maxFiles(1)
+                ->disk('public')
+                ->directory('answers')
+                ->visibility('public')
+                ->columnSpanFull()
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $set('answer_media_type', self::resolveMediaType($state));
+                }),
+
+            Hidden::make('answer_media_type')
                 ->default(''),
 
             Checkbox::make('generate_qr_code')
@@ -131,5 +120,35 @@ class QuestionForm
                 ->default(false)
                 ->columnSpanFull(),
         ]);
+    }
+
+    /**
+     * Map an uploaded file to the coarse media type stored alongside it.
+     */
+    public static function resolveMediaType(mixed $state): ?string
+    {
+        if (! $state) {
+            return null;
+        }
+
+        $mime = null;
+
+        if ($state instanceof TemporaryUploadedFile) {
+            $mime = $state->getMimeType();
+        } elseif (is_string($state)) {
+            $fullPath = Storage::disk('public')->path($state);
+            $mime = File::exists($fullPath) ? File::mimeType($fullPath) : null;
+        }
+
+        if (! is_string($mime)) {
+            return null;
+        }
+
+        return match (true) {
+            str_starts_with($mime, 'image/') => 'image',
+            str_starts_with($mime, 'video/') => 'video',
+            str_starts_with($mime, 'audio/') => 'audio',
+            default => null,
+        };
     }
 }

@@ -17,6 +17,11 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class CategoryBulkQuestionsExcelImporter
 {
+    /**
+     * 1-based index of the "picture for this question" column; the answer picture sits to its right.
+     */
+    private const ANSWER_MEDIA_COLUMN = 6;
+
     public int $created = 0;
 
     public int $skipped = 0;
@@ -56,27 +61,9 @@ class CategoryBulkQuestionsExcelImporter
             break;
         }
 
-        $machineHeaders = ['question', 'answer', 'hint', 'score', 'media'];
-        $headerSlice = array_values(array_slice($headerRow, 0, 5));
+        $hasAnswerMediaColumn = $this->detectAnswerMediaColumn($headerRow);
 
-        $headerOk = $headerSlice === $machineHeaders;
-        if (! $headerOk) {
-            foreach (array_unique([app()->getLocale(), 'en', 'ar']) as $locale) {
-                $expected = [
-                    trans('panel.excel_question', [], $locale),
-                    trans('panel.excel_answer', [], $locale),
-                    trans('panel.excel_hint', [], $locale),
-                    trans('panel.excel_score', [], $locale),
-                    trans('panel.bulk_excel_media_column', [], $locale),
-                ];
-                if ($headerSlice === $expected) {
-                    $headerOk = true;
-                    break;
-                }
-            }
-        }
-
-        if (! $headerOk) {
+        if ($hasAnswerMediaColumn === null) {
             $this->errors[] = [
                 'row' => 1,
                 'errors' => [__('panel.bulk_excel_invalid_header')],
@@ -85,7 +72,7 @@ class CategoryBulkQuestionsExcelImporter
             return;
         }
 
-        $imagesByRow = $this->mapDrawingsByRow($sheet);
+        $imagesByRow = $this->mapDrawingsByRow($sheet, $hasAnswerMediaColumn);
 
         $highestRow = (int) $sheet->getHighestDataRow();
         $highestRow = max($highestRow, 2);
@@ -101,13 +88,16 @@ class CategoryBulkQuestionsExcelImporter
                     $score = is_numeric($scoreRaw) ? (int) $scoreRaw : (string) $scoreRaw;
                 }
 
-                if ($question === '' && $answer === '' && ($hint === '' || $hint === null) && ($score === null || $score === '') && ! isset($imagesByRow[$excelRow])) {
+                $rowImages = $imagesByRow[$excelRow] ?? [];
+
+                if ($question === '' && $answer === '' && ($hint === '' || $hint === null) && ($score === null || $score === '') && $rowImages === []) {
                     $this->skipped++;
 
                     continue;
                 }
 
-                $mediaPath = $imagesByRow[$excelRow] ?? null;
+                $mediaPath = $rowImages['media'] ?? null;
+                $answerMediaPath = $rowImages['answer_media'] ?? null;
 
                 $data = [
                     'category_id' => $this->categoryId,
@@ -117,6 +107,8 @@ class CategoryBulkQuestionsExcelImporter
                     'score' => $score,
                     'media' => $mediaPath,
                     'media_type' => $mediaPath ? 'image' : null,
+                    'answer_media' => $answerMediaPath,
+                    'answer_media_type' => $answerMediaPath ? 'image' : null,
                 ];
 
                 $validator = Validator::make($data, [
@@ -127,6 +119,8 @@ class CategoryBulkQuestionsExcelImporter
                     'score' => ['nullable', 'integer'],
                     'media' => ['nullable', 'string'],
                     'media_type' => ['nullable', 'string'],
+                    'answer_media' => ['nullable', 'string'],
+                    'answer_media_type' => ['nullable', 'string'],
                 ]);
 
                 if ($validator->fails()) {
@@ -149,9 +143,58 @@ class CategoryBulkQuestionsExcelImporter
         });
     }
 
-    protected function mapDrawingsByRow(Worksheet $sheet): array
+    /**
+     * Validate the header row against the current template and the one that predates
+     * the answer-picture column.
+     *
+     * @param  list<mixed>  $headerRow
+     * @return bool|null True when the answer-picture column is present, false for the
+     *                   legacy five-column sheet, null when the header is not recognised.
+     */
+    protected function detectAnswerMediaColumn(array $headerRow): ?bool
     {
+        $machineHeaders = ['question', 'answer', 'hint', 'score', 'media', 'answer_media'];
 
+        $localised = [];
+        foreach (array_unique([app()->getLocale(), 'en', 'ar']) as $locale) {
+            $localised[] = [
+                trans('panel.excel_question', [], $locale),
+                trans('panel.excel_answer', [], $locale),
+                trans('panel.excel_hint', [], $locale),
+                trans('panel.excel_score', [], $locale),
+                trans('panel.bulk_excel_media_column', [], $locale),
+                trans('panel.bulk_excel_answer_media_column', [], $locale),
+            ];
+        }
+
+        foreach ([6 => true, 5 => false] as $width => $hasAnswerMediaColumn) {
+            $slice = array_values(array_slice($headerRow, 0, $width));
+
+            if ($slice === array_slice($machineHeaders, 0, $width)) {
+                return $hasAnswerMediaColumn;
+            }
+
+            foreach ($localised as $expected) {
+                if ($slice === array_slice($expected, 0, $width)) {
+                    return $hasAnswerMediaColumn;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Group each row's embedded pictures into the question slot and the answer slot.
+     *
+     * Drawings anchored at or before the media column (E) belong to the question;
+     * anything to its right belongs to the answer. Sheets from the older template have
+     * no answer column, so every picture on the row stays with the question.
+     *
+     * @return array<int, array{media?: string, answer_media?: string}>
+     */
+    protected function mapDrawingsByRow(Worksheet $sheet, bool $hasAnswerMediaColumn): array
+    {
         $candidates = [];
 
         foreach ($sheet->getDrawingCollection() as $drawing) {
@@ -169,17 +212,20 @@ class CategoryBulkQuestionsExcelImporter
                 continue;
             }
 
-            $candidates[$row][] = ['col' => $colIndex, 'drawing' => $drawing];
+            $slot = $hasAnswerMediaColumn && $colIndex >= self::ANSWER_MEDIA_COLUMN ? 'answer_media' : 'media';
+            $candidates[$row][$slot][] = ['col' => $colIndex, 'drawing' => $drawing];
         }
 
         $map = [];
-        foreach ($candidates as $row => $items) {
-            usort($items, fn (array $a, array $b): int => $b['col'] <=> $a['col']);
-            foreach ($items as $item) {
-                $path = $this->persistDrawing($item['drawing']);
-                if ($path !== null) {
-                    $map[$row] = $path;
-                    break;
+        foreach ($candidates as $row => $slots) {
+            foreach ($slots as $slot => $items) {
+                usort($items, fn (array $a, array $b): int => $b['col'] <=> $a['col']);
+                foreach ($items as $item) {
+                    $path = $this->persistDrawing($item['drawing'], $slot === 'answer_media' ? 'answers' : 'questions');
+                    if ($path !== null) {
+                        $map[$row][$slot] = $path;
+                        break;
+                    }
                 }
             }
         }
@@ -187,9 +233,8 @@ class CategoryBulkQuestionsExcelImporter
         return $map;
     }
 
-    protected function persistDrawing(BaseDrawing $drawing): ?string
+    protected function persistDrawing(BaseDrawing $drawing, string $dir = 'questions'): ?string
     {
-        $dir = 'questions';
         $base = Str::uuid()->toString();
 
         if ($drawing instanceof MemoryDrawing) {

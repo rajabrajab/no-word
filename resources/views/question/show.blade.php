@@ -11,6 +11,10 @@
             box-sizing: border-box;
         }
 
+        [hidden] {
+            display: none !important;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #09182c 0%, #1e2f46 100%);
@@ -131,6 +135,12 @@
             max-height: 500px;
         }
 
+        .media-container audio {
+            width: 100%;
+            display: block;
+            padding: 15px;
+        }
+
         .media-container iframe {
             width: 100%;
             min-height: 500px;
@@ -155,6 +165,97 @@
                 color: #1e2f46;
                 box-shadow: 0 4px 20px rgba(251, 203, 28, 0.5), 0 0 10px rgba(236, 44, 46, 0.3);
                 font-weight: bold;
+            }
+        }
+
+        .reveal-button {
+            display: inline-block;
+            width: 100%;
+            max-width: 320px;
+            padding: 16px 30px;
+            border: none;
+            border-radius: 30px;
+            background: #fbcb1c;
+            color: #09182c;
+            font-family: inherit;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(251, 203, 28, 0.45);
+            transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .reveal-button:hover {
+            background: #ffd740;
+        }
+
+        .reveal-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 10px rgba(251, 203, 28, 0.4);
+        }
+
+        .reveal-button:focus-visible {
+            outline: 3px solid #ec2c2e;
+            outline-offset: 3px;
+        }
+
+        .answer-card {
+            margin-top: 25px;
+            background: #fffdf3;
+            border: 2px solid #e1e8ed;
+            border-inline-start: 6px solid #fbcb1c;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: start;
+            animation: answer-reveal 0.25s ease-out;
+        }
+
+        @keyframes answer-reveal {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .answer-card {
+                animation: none;
+            }
+        }
+
+        .answer-label {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ec2c2e;
+            margin-bottom: 10px;
+        }
+
+        .answer-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a2b3c;
+            line-height: 1.6;
+        }
+
+        .answer-card .media-container {
+            margin-bottom: 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .answer-card {
+                background: #fffdf3;
+                border-color: rgba(251, 203, 28, 0.5);
+                border-inline-start-color: #fbcb1c;
+            }
+
+            .answer-text {
+                color: #1a2b3c;
             }
         }
 
@@ -188,6 +289,19 @@
             .media-container iframe {
                 min-height: 300px;
             }
+
+            .reveal-button {
+                font-size: 18px;
+                padding: 14px 24px;
+            }
+
+            .answer-card {
+                padding: 20px;
+            }
+
+            .answer-text {
+                font-size: 19px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -206,6 +320,14 @@
             .logo {
                 max-width: 120px;
             }
+
+            .answer-card {
+                padding: 15px;
+            }
+
+            .answer-text {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -218,7 +340,7 @@
         <div class="question-card">
             <h1 class="question-title">{{ $question->question }}</h1>
 
-            @if($question->media)
+            @if($question->hasQuestionMedia())
                 <div class="media-container">
                     @if($question->media_type === 'image')
                         <img src="{{ asset('storage/' . $question->media) }}" alt="Question Media">
@@ -240,6 +362,51 @@
                 </div>
             @endif
         </div>
+
+        <button type="button" class="reveal-button" id="revealAnswer" aria-expanded="false" aria-controls="answerBlock">
+            إظهار الإجابة
+        </button>
+
+        <div class="answer-card" id="answerBlock" hidden>
+            <div class="answer-label">الإجابة</div>
+            <div class="answer-text">{{ $question->answer }}</div>
+
+            @if($question->hasAnswerMedia())
+                <div class="media-container">
+                    @if($question->answer_media_type === 'video')
+                        <video controls>
+                            <source src="{{ asset('storage/' . $question->answer_media) }}" type="video/mp4">
+                            متصفحك لا يدعم تشغيل الفيديو.
+                        </video>
+                    @elseif($question->answer_media_type === 'audio')
+                        <audio controls src="{{ asset('storage/' . $question->answer_media) }}">
+                            متصفحك لا يدعم تشغيل الصوت.
+                        </audio>
+                    @else
+                        <img src="{{ asset('storage/' . $question->answer_media) }}" alt="Answer Media">
+                    @endif
+                </div>
+            @endif
+        </div>
     </div>
+
+    <script>
+        (function () {
+            var button = document.getElementById('revealAnswer');
+            var block = document.getElementById('answerBlock');
+
+            if (!button || !block) {
+                return;
+            }
+
+            button.addEventListener('click', function () {
+                var willShow = block.hidden;
+
+                block.hidden = !willShow;
+                button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+                button.textContent = willShow ? 'إخفاء الإجابة' : 'إظهار الإجابة';
+            });
+        })();
+    </script>
 </body>
 </html>
