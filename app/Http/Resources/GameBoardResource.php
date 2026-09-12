@@ -43,9 +43,14 @@ class GameBoardResource extends JsonResource
                 return null;
             }
 
+            // Cheapest tier first, so each column reads 200 -> 400 -> 600.
+            $ordered = $categoryQuestions
+                ->sortBy([['score', 'asc'], ['id', 'asc']])
+                ->values();
+
             return [
                 'category' => new CategoryResource($category),
-                'questions' => QuestionResource::collection($categoryQuestions),
+                'questions' => QuestionResource::collection($ordered),
             ];
         })->filter()->values();
 

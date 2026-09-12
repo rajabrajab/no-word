@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Resources\GameBoardResource;
 use App\Http\Resources\TeamResource;
 use App\Models\Category;
 use App\Models\Country;
@@ -273,6 +274,28 @@ class HelpingMethodsTest extends TestCase
             'helping_method_id' => $this->method(HelpingMethod::REVEAL_ANSWER)->id,
             'question_id' => $question->id,
         ]);
+    }
+
+    public function test_the_board_lists_each_category_s_questions_cheapest_first(): void
+    {
+        [$team, $first] = $this->makeGame(['score' => 600]);
+        $category = $first->category;
+
+        // Attached deliberately out of order, two per tier as a real game has.
+        foreach ([200, 600, 400, 200, 400] as $score) {
+            $team->game->questions()->attach(
+                $this->makeQuestion($category, ['score' => $score])->id
+            );
+        }
+
+        $game = app(GameService::class)->getGameBoard($team->game->fresh());
+        $payload = (new GameBoardResource($game))->toArray(request());
+
+        $scores = collect($payload['categories'][0]['questions'])
+            ->map(fn ($question) => $question->toArray(request())['score'])
+            ->all();
+
+        $this->assertSame([200, 200, 400, 400, 600, 600], $scores);
     }
 
     public function test_the_team_payload_lists_every_live_method(): void
