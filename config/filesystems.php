@@ -26,6 +26,11 @@ return [
     |
     | Supported drivers: "local", "ftp", "sftp", "s3"
     |
+    | The local and public disks throw on failure. Livewire's temporary uploads
+    | and Filament's FileUpload ignore a false return from a write, so a disk
+    | that cannot be written (e.g. wrong directory ownership on the server)
+    | would otherwise save a path to a file that was never stored.
+    |
     */
 
     'disks' => [
@@ -34,7 +39,7 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => true,
-            'throw' => false,
+            'throw' => true,
             'report' => false,
         ],
 
@@ -43,7 +48,7 @@ return [
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
-            'throw' => false,
+            'throw' => true,
             'report' => false,
         ],
 
