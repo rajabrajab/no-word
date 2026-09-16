@@ -104,6 +104,23 @@ class AnswerMediaTest extends TestCase
         $response->assertSee('storage/questions/present.png', false);
     }
 
+    public function test_qr_page_plays_question_audio_in_an_audio_player(): void
+    {
+        Storage::disk('public')->put('questions/voice-note.m4a', 'fake-m4a');
+        $question = $this->makeQuestion([
+            'media' => 'questions/voice-note.m4a',
+            'media_type' => 'audio',
+        ]);
+
+        $response = $this->get(route('question.show', $question));
+
+        $response->assertOk();
+        $response->assertSee('<audio controls', false);
+        // A voice note used to land in the video branch's iframe fallback.
+        $response->assertDontSee('<iframe', false);
+        $response->assertDontSee('<video controls', false);
+    }
+
     public function test_api_resource_exposes_answer_media_url(): void
     {
         $question = $this->makeQuestion([

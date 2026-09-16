@@ -7,15 +7,16 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class PoliciesConditionsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->label(__('panel.title'))
@@ -33,7 +34,7 @@ class PoliciesConditionsTable
                     ->date()
                     ->sortable(),
             ])
-             ->filters([
+            ->filters([
                 SelectFilter::make('type')
                     ->label(__('panel.type'))
                     ->options([

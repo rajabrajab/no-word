@@ -21,6 +21,7 @@ class CategoriesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columnManager(false)
             ->columns([
                 ImageColumn::make('image')

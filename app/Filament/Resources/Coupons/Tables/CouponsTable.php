@@ -2,31 +2,32 @@
 
 namespace App\Filament\Resources\Coupons\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class CouponsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columnManager(false)
             ->columns([
                 TextColumn::make('code')->searchable()->label(__('panel.code')),
                 TextColumn::make('discount_type')
-                ->label(__('panel.discountType'))
-                ->getStateUsing(function ($record) {
-                    return match ($record->discount_type) {
-                        'percentage' => __('panel.percentage'),
-                        'fixed' => __('panel.fixed'),
-                        default => $record->discount_type,
-                    };
-                }),
+                    ->label(__('panel.discountType'))
+                    ->getStateUsing(function ($record) {
+                        return match ($record->discount_type) {
+                            'percentage' => __('panel.percentage'),
+                            'fixed' => __('panel.fixed'),
+                            default => $record->discount_type,
+                        };
+                    }),
                 TextColumn::make('discount_value')->label(__('panel.discountValue')),
                 TextColumn::make('valid_from')->date()->label(__('panel.validFrom')),
                 TextColumn::make('valid_to')->date()->label(__('panel.validTo')),

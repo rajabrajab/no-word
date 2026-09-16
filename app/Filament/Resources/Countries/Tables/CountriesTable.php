@@ -20,19 +20,20 @@ class CountriesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columnManager(false)
             ->columns([
                 ImageColumn::make('image')
-                ->disk('public')
-                ->size(100)
-                ->circular()
-                ->label(false),
+                    ->disk('public')
+                    ->size(100)
+                    ->circular()
+                    ->label(false),
                 TextColumn::make('name')->label(__('panel.name'))->searchable(),
                 TextColumn::make('is_active')
                     ->label(__('panel.status'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => $state ? __('panel.active') : __('panel.inactive'))
-                    ->color(fn ($state) => $state ? 'success' : 'danger')
+                    ->color(fn ($state) => $state ? 'success' : 'danger'),
             ])
 
             ->filters([

@@ -346,9 +346,13 @@
                         <img src="{{ asset('storage/' . $question->media) }}" alt="Question Media">
                     @elseif($question->media_type === 'video')
                         <video controls>
-                            <source src="{{ asset('storage/' . $question->media) }}" type="video/mp4">
+                            <source src="{{ asset('storage/' . $question->media) }}">
                             متصفحك لا يدعم تشغيل الفيديو.
                         </video>
+                    @elseif($question->media_type === 'audio')
+                        <audio controls src="{{ asset('storage/' . $question->media) }}">
+                            متصفحك لا يدعم تشغيل الصوت.
+                        </audio>
                     @else
                         <iframe src="{{ asset('storage/' . $question->media) }}" frameborder="0"></iframe>
                     @endif
@@ -375,7 +379,7 @@
                 <div class="media-container">
                     @if($question->answer_media_type === 'video')
                         <video controls>
-                            <source src="{{ asset('storage/' . $question->answer_media) }}" type="video/mp4">
+                            <source src="{{ asset('storage/' . $question->answer_media) }}">
                             متصفحك لا يدعم تشغيل الفيديو.
                         </video>
                     @elseif($question->answer_media_type === 'audio')

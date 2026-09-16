@@ -6,17 +6,18 @@ use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class UsersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
-           ->query(
+            ->defaultSort('id', 'desc')
+            ->query(
                 fn () => User::query()->where('type', '!=', 'admin')
             )
             ->columnManager(false)
@@ -27,19 +28,19 @@ class UsersTable
                     ->circular()
                     ->height(40)
                     ->width(40)
-                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=random&length=2')
+                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name='.urlencode($record->name).'&background=random&length=2')
                     ->size(40),
                 TextColumn::make('name')->label(__('panel.name'))->searchable(),
                 TextColumn::make('email')->label(__('panel.email'))->searchable(),
                 TextColumn::make('normalized')->label(__('panel.phone'))->searchable(),
                 TextColumn::make('is_blocked')->label(__('panel.status'))->badge()
-                ->formatStateUsing(fn ($state) => $state ? __('panel.blocked') : __('panel.active'))
-                ->color(fn ($state) => $state ? 'danger' : 'success'),
+                    ->formatStateUsing(fn ($state) => $state ? __('panel.blocked') : __('panel.active'))
+                    ->color(fn ($state) => $state ? 'danger' : 'success'),
                 TextColumn::make('subscription.package.name')
-                ->label(__('panel.selected_package'))
-                ->default(__('panel.no_package'))
-                ->searchable(),
-                TextColumn::make('joined_at')->date()->label(__('panel.joined_at'))
+                    ->label(__('panel.selected_package'))
+                    ->default(__('panel.no_package'))
+                    ->searchable(),
+                TextColumn::make('joined_at')->date()->label(__('panel.joined_at')),
             ])
             ->filters([
                 //

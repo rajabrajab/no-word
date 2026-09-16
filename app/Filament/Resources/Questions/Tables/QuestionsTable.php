@@ -19,6 +19,7 @@ class QuestionsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
                 TextColumn::make('id')->label('#'),
                 TextColumn::make('question')->label(__('panel.question')),
