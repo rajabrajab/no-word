@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Question;
 use App\Services\QrCodeService;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 
 class RefreshQuestionQrCodes extends Command
@@ -25,10 +26,7 @@ class RefreshQuestionQrCodes extends Command
             return self::SUCCESS;
         }
 
-        $query = Question::query()->when(
-            $this->option('missing-only'),
-            fn ($query) => $query->whereNull('qr_code')->orWhere('qr_code', ''),
-        );
+        $query = $this->questionsToDraw();
 
         $total = $query->clone()->count();
 
@@ -69,6 +67,26 @@ class RefreshQuestionQrCodes extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Every live question, plus the deleted ones that already have a code. A deleted
+     * question keeps its file, so skipping it would leave an id-URL code behind for a
+     * restore to bring back — but it is not given a code it never had.
+     */
+    private function questionsToDraw(): Builder
+    {
+        if ($this->option('missing-only')) {
+            return Question::query()->where(
+                fn (Builder $query) => $query->whereNull('qr_code')->orWhere('qr_code', ''),
+            );
+        }
+
+        return Question::withTrashed()->where(
+            fn (Builder $query) => $query->whereNull('deleted_at')->orWhere(
+                fn (Builder $query) => $query->whereNotNull('qr_code')->where('qr_code', '<>', ''),
+            ),
+        );
     }
 
     /**

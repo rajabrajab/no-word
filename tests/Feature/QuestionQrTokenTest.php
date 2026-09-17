@@ -107,6 +107,33 @@ class QuestionQrTokenTest extends TestCase
         Storage::disk('public')->assertMissing('qr-codes/question-'.$question->id.'.svg');
     }
 
+    public function test_the_refresh_command_redraws_the_codes_of_deleted_questions(): void
+    {
+        $question = $this->makeQuestion();
+        Storage::disk('public')->put('qr-codes/question-'.$question->id.'.svg', 'old-svg');
+        $question->update(['qr_code' => 'qr-codes/question-'.$question->id.'.svg']);
+        $question->delete();
+
+        $this->artisan('questions:refresh-qr-codes')->assertSuccessful();
+
+        // Restoring the question must not bring back a code that encodes the id URL.
+        $question->refresh();
+        $this->assertSame('qr-codes/'.$question->qr_token.'.svg', $question->qr_code);
+        Storage::disk('public')->assertExists($question->qr_code);
+        Storage::disk('public')->assertMissing('qr-codes/question-'.$question->id.'.svg');
+    }
+
+    public function test_the_refresh_command_does_not_give_a_deleted_question_a_code_it_never_had(): void
+    {
+        $question = $this->makeQuestion();
+        $question->delete();
+
+        $this->artisan('questions:refresh-qr-codes')->assertSuccessful();
+
+        $this->assertNull($question->fresh()->qr_code);
+        Storage::disk('public')->assertMissing('qr-codes/'.$question->qr_token.'.svg');
+    }
+
     public function test_the_refresh_command_keeps_tokens_unless_asked_to_rotate_them(): void
     {
         $question = $this->makeQuestion();
