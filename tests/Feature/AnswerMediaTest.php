@@ -121,6 +121,49 @@ class AnswerMediaTest extends TestCase
         $response->assertDontSee('<video controls', false);
     }
 
+    public function test_qr_page_plays_answer_audio_saved_without_a_type(): void
+    {
+        Storage::disk('public')->put('answers/clue.m4a', 'fake-m4a');
+        $question = $this->makeQuestion([
+            'answer_media' => 'answers/clue.m4a',
+            'answer_media_type' => '',
+        ]);
+
+        $response = $this->get(route('question.show', $question));
+
+        $response->assertOk();
+        $response->assertSee('<audio controls', false);
+        // A blank type used to drop answer media into the picture branch.
+        $response->assertDontSee('<img src="'.asset('storage/answers/clue.m4a'), false);
+    }
+
+    public function test_qr_page_plays_answer_video_saved_without_a_type(): void
+    {
+        Storage::disk('public')->put('answers/reveal.mp4', 'fake-mp4');
+        $question = $this->makeQuestion([
+            'answer_media' => 'answers/reveal.mp4',
+            'answer_media_type' => null,
+        ]);
+
+        $response = $this->get(route('question.show', $question));
+
+        $response->assertOk();
+        $response->assertSee('<video controls', false);
+    }
+
+    public function test_api_resource_reports_the_type_of_media_saved_without_one(): void
+    {
+        Storage::disk('public')->put('questions/voice.m4a', 'fake-m4a');
+        $question = $this->makeQuestion([
+            'media' => 'questions/voice.m4a',
+            'media_type' => '',
+        ]);
+
+        $payload = (new QuestionResource($question))->toArray(request());
+
+        $this->assertSame('audio', $payload['media_type']);
+    }
+
     public function test_api_resource_exposes_answer_media_url(): void
     {
         $question = $this->makeQuestion([

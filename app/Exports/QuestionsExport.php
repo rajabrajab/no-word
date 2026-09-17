@@ -15,13 +15,25 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class QuestionsExport implements FromCollection, WithColumnWidths, WithEvents, WithHeadings, WithMapping
 {
+    /**
+     * Column letters the two pictures are drawn into, keyed by the attribute holding
+     * the stored path.
+     *
+     * @var array<string, string>
+     */
+    private const MEDIA_COLUMNS = [
+        'media' => 'H',
+        'answer_media' => 'I',
+    ];
+
     protected ?Collection $questions = null;
 
     public function collection(): Collection
     {
         if ($this->questions === null) {
             $this->questions = Question::query()
-                ->select(['id', 'category_id', 'question', 'answer', 'hint', 'score', 'media', 'media_type'])
+                ->with('category:id,name')
+                ->select(['id', 'category_id', 'question', 'answer', 'hint', 'score', 'media', 'media_type', 'answer_media', 'answer_media_type'])
                 ->orderBy('id')
                 ->get();
         }
@@ -34,46 +46,60 @@ class QuestionsExport implements FromCollection, WithColumnWidths, WithEvents, W
         return [
             __('panel.excel_id'),
             __('panel.excel_category_id'),
+            __('panel.excel_category_name'),
             __('panel.excel_question'),
             __('panel.excel_answer'),
             __('panel.excel_hint'),
             __('panel.excel_score'),
-            __('panel.excel_media'),
+            __('panel.bulk_excel_media_column'),
+            __('panel.bulk_excel_answer_media_column'),
         ];
     }
 
     public function map($row): array
     {
-        $mediaCell = '';
-        if (filled($row->media)) {
-            $absolute = Storage::disk('public')->path($row->media);
-            if (! $this->isEmbeddableRasterImage($row, $absolute)) {
-                $mediaCell = $row->media;
-            }
-        }
-
         return [
             $row->id,
             $row->category_id,
+            $row->category?->name,
             $row->question,
             $row->answer,
             $row->hint,
             $row->score,
-            $mediaCell,
+            $this->mediaCell($row, 'media'),
+            $this->mediaCell($row, 'answer_media'),
         ];
     }
 
+    /**
+     * Pictures are drawn onto the sheet instead, so only media the sheet cannot show
+     * — audio, video, vector images — falls back to its stored path as text.
+     */
+    protected function mediaCell(Question $question, string $attribute): string
+    {
+        $path = $question->{$attribute};
+
+        if (! filled($path)) {
+            return '';
+        }
+
+        return $this->isEmbeddableRasterImage($question, Storage::disk('public')->path($path), $attribute)
+            ? ''
+            : $path;
+    }
 
     public function columnWidths(): array
     {
         return [
             'A' => 8,
             'B' => 14,
-            'C' => 40,
-            'D' => 30,
-            'E' => 24,
-            'F' => 10,
-            'G' => 28,
+            'C' => 24,
+            'D' => 40,
+            'E' => 30,
+            'F' => 24,
+            'G' => 10,
+            'H' => 28,
+            'I' => 28,
         ];
     }
 
@@ -84,46 +110,56 @@ class QuestionsExport implements FromCollection, WithColumnWidths, WithEvents, W
                 $sheet = $event->sheet->getDelegate();
 
                 foreach ($this->collection()->values() as $index => $question) {
-                    if (! filled($question->media)) {
-                        continue;
-                    }
-
-                    $absolute = Storage::disk('public')->path($question->media);
-                    if (! $this->isEmbeddableRasterImage($question, $absolute)) {
-                        continue;
-                    }
-
-                    $resolved = realpath($absolute);
-                    if ($resolved === false || ! is_readable($resolved)) {
-                        continue;
-                    }
-
                     $excelRow = $index + 2;
-                    $sheet->getRowDimension($excelRow)->setRowHeight(64);
+                    $drawn = false;
 
-                    $drawing = new Drawing;
-                    $drawing->setName('Question media');
-                    $drawing->setDescription((string) $question->id);
-                    $drawing->setPath($resolved);
-                    $drawing->setResizeProportional(true);
-                    $drawing->setWidth(120);
-                    $drawing->setHeight(72);
-                    $drawing->setCoordinates('G'.$excelRow);
-                    $drawing->setOffsetX(2);
-                    $drawing->setOffsetY(2);
-                    $drawing->setWorksheet($sheet);
+                    foreach (self::MEDIA_COLUMNS as $attribute => $column) {
+                        $path = $question->{$attribute};
+
+                        if (! filled($path)) {
+                            continue;
+                        }
+
+                        $absolute = Storage::disk('public')->path($path);
+                        if (! $this->isEmbeddableRasterImage($question, $absolute, $attribute)) {
+                            continue;
+                        }
+
+                        $resolved = realpath($absolute);
+                        if ($resolved === false || ! is_readable($resolved)) {
+                            continue;
+                        }
+
+                        $drawing = new Drawing;
+                        $drawing->setName('Question media');
+                        $drawing->setDescription((string) $question->id);
+                        $drawing->setPath($resolved);
+                        $drawing->setResizeProportional(true);
+                        $drawing->setWidth(120);
+                        $drawing->setHeight(72);
+                        $drawing->setCoordinates($column.$excelRow);
+                        $drawing->setOffsetX(2);
+                        $drawing->setOffsetY(2);
+                        $drawing->setWorksheet($sheet);
+
+                        $drawn = true;
+                    }
+
+                    if ($drawn) {
+                        $sheet->getRowDimension($excelRow)->setRowHeight(64);
+                    }
                 }
             },
         ];
     }
 
-    protected function isEmbeddableRasterImage(Question $question, string $absolutePath): bool
+    protected function isEmbeddableRasterImage(Question $question, string $absolutePath, string $attribute = 'media'): bool
     {
         if (! is_file($absolutePath)) {
             return false;
         }
 
-        $type = strtolower((string) $question->media_type);
+        $type = strtolower((string) $question->{$attribute.'_type'});
         if (in_array($type, ['video', 'audio'], true)) {
             return false;
         }

@@ -2,28 +2,22 @@
 
 namespace App\Exports;
 
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class QuestionsTemplateExport implements FromCollection, WithHeadings
+/**
+ * The workbook behind "Download template" on the Questions list: the blank sheet
+ * to fill in, plus the category list it is filled in against.
+ */
+class QuestionsTemplateExport implements WithMultipleSheets
 {
-    public function collection(): Collection
-    {
-        return collect();
-    }
-
-    public function headings(): array
+    /**
+     * @return list<object>
+     */
+    public function sheets(): array
     {
         return [
-            __('panel.excel_category_id'),
-            __('panel.excel_question'),
-            __('panel.excel_answer'),
-            __('panel.excel_hint'),
-            __('panel.excel_score'),
-            __('panel.excel_media'),
-            __('panel.excel_media_type'),
+            new QuestionsTemplateSheet,
+            new QuestionsTemplateCategoriesSheet,
         ];
     }
 }
-

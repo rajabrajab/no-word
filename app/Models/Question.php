@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MediaTypeResolver;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,6 +43,40 @@ class Question extends BaseModel
     public function hasAnswerMedia(): bool
     {
         return $this->storedMediaExists($this->answer_media);
+    }
+
+    /**
+     * The kind of the question's media, worked out from the file when the stored
+     * type is blank or unrecognised — rows predating the column, or written before
+     * the type was derived, would otherwise reach the wrong player.
+     */
+    public function questionMediaType(): ?string
+    {
+        return MediaTypeResolver::reconcile($this->media_type, $this->media);
+    }
+
+    /**
+     * The kind of the answer's media. See {@see questionMediaType()}.
+     */
+    public function answerMediaType(): ?string
+    {
+        return MediaTypeResolver::reconcile($this->answer_media_type, $this->answer_media);
+    }
+
+    /**
+     * Public URL of the question's media, or null when it has none.
+     */
+    public function questionMediaUrl(): ?string
+    {
+        return filled($this->media) ? asset('storage/'.$this->media) : null;
+    }
+
+    /**
+     * Public URL of the answer's media, or null when it has none.
+     */
+    public function answerMediaUrl(): ?string
+    {
+        return filled($this->answer_media) ? asset('storage/'.$this->answer_media) : null;
     }
 
     /**

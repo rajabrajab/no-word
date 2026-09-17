@@ -4,15 +4,13 @@ namespace App\Filament\Resources\Questions\Schemas;
 
 use App\Models\Category;
 use App\Models\Country;
+use App\Services\MediaTypeResolver;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class QuestionForm
 {
@@ -123,68 +121,12 @@ class QuestionForm
     }
 
     /**
-     * Coarse media type per file extension.
-     *
-     * Content sniffing alone misclassifies MPEG-4 audio: an .m4a written with an
-     * `isom`/`mp42` brand (ffmpeg, most Android recorders) is byte-identical to a
-     * video container in its header, so finfo reports `video/mp4`. The extension is
-     * the only reliable signal for those, so it wins over the sniffed MIME type.
-     *
-     * @var array<string, string>
-     */
-    private const MEDIA_TYPES_BY_EXTENSION = [
-        'aac' => 'audio', 'aif' => 'audio', 'aiff' => 'audio', 'amr' => 'audio',
-        'caf' => 'audio', 'flac' => 'audio', 'm4a' => 'audio', 'm4b' => 'audio',
-        'mp3' => 'audio', 'oga' => 'audio', 'ogg' => 'audio', 'opus' => 'audio',
-        'wav' => 'audio', 'weba' => 'audio', 'wma' => 'audio',
-
-        '3g2' => 'video', '3gp' => 'video', 'avi' => 'video', 'flv' => 'video',
-        'm4v' => 'video', 'mkv' => 'video', 'mov' => 'video', 'mp4' => 'video',
-        'mpeg' => 'video', 'mpg' => 'video', 'ogv' => 'video', 'webm' => 'video',
-        'wmv' => 'video',
-
-        'avif' => 'image', 'bmp' => 'image', 'gif' => 'image', 'heic' => 'image',
-        'heif' => 'image', 'ico' => 'image', 'jpeg' => 'image', 'jpg' => 'image',
-        'png' => 'image', 'svg' => 'image', 'tif' => 'image', 'tiff' => 'image',
-        'webp' => 'image',
-    ];
-
-    /**
      * Map an uploaded file to the coarse media type stored alongside it.
+     *
+     * Extension first, sniffed MIME second — see {@see MediaTypeResolver} for why.
      */
     public static function resolveMediaType(mixed $state): ?string
     {
-        if (! $state) {
-            return null;
-        }
-
-        $name = null;
-        $mime = null;
-
-        if ($state instanceof TemporaryUploadedFile) {
-            $name = $state->getClientOriginalName();
-            $mime = $state->getMimeType();
-        } elseif (is_string($state)) {
-            $name = $state;
-            $fullPath = Storage::disk('public')->path($state);
-            $mime = File::exists($fullPath) ? File::mimeType($fullPath) : null;
-        }
-
-        $extension = strtolower(pathinfo((string) $name, PATHINFO_EXTENSION));
-
-        if (isset(self::MEDIA_TYPES_BY_EXTENSION[$extension])) {
-            return self::MEDIA_TYPES_BY_EXTENSION[$extension];
-        }
-
-        if (! is_string($mime)) {
-            return null;
-        }
-
-        return match (true) {
-            str_starts_with($mime, 'image/') => 'image',
-            str_starts_with($mime, 'video/') => 'video',
-            str_starts_with($mime, 'audio/'), $mime === 'application/ogg' => 'audio',
-            default => null,
-        };
+        return MediaTypeResolver::resolve($state);
     }
 }

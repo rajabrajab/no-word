@@ -341,22 +341,11 @@
             <h1 class="question-title">{{ $question->question }}</h1>
 
             @if($question->hasQuestionMedia())
-                <div class="media-container">
-                    @if($question->media_type === 'image')
-                        <img src="{{ asset('storage/' . $question->media) }}" alt="Question Media">
-                    @elseif($question->media_type === 'video')
-                        <video controls>
-                            <source src="{{ asset('storage/' . $question->media) }}">
-                            متصفحك لا يدعم تشغيل الفيديو.
-                        </video>
-                    @elseif($question->media_type === 'audio')
-                        <audio controls src="{{ asset('storage/' . $question->media) }}">
-                            متصفحك لا يدعم تشغيل الصوت.
-                        </audio>
-                    @else
-                        <iframe src="{{ asset('storage/' . $question->media) }}" frameborder="0"></iframe>
-                    @endif
-                </div>
+                @include('question.partials.media', [
+                    'url' => $question->questionMediaUrl(),
+                    'type' => $question->questionMediaType(),
+                    'alt' => 'Question Media',
+                ])
             @endif
 
 
@@ -376,20 +365,11 @@
             <div class="answer-text">{{ $question->answer }}</div>
 
             @if($question->hasAnswerMedia())
-                <div class="media-container">
-                    @if($question->answer_media_type === 'video')
-                        <video controls>
-                            <source src="{{ asset('storage/' . $question->answer_media) }}">
-                            متصفحك لا يدعم تشغيل الفيديو.
-                        </video>
-                    @elseif($question->answer_media_type === 'audio')
-                        <audio controls src="{{ asset('storage/' . $question->answer_media) }}">
-                            متصفحك لا يدعم تشغيل الصوت.
-                        </audio>
-                    @else
-                        <img src="{{ asset('storage/' . $question->answer_media) }}" alt="Answer Media">
-                    @endif
-                </div>
+                @include('question.partials.media', [
+                    'url' => $question->answerMediaUrl(),
+                    'type' => $question->answerMediaType(),
+                    'alt' => 'Answer Media',
+                ])
             @endif
         </div>
     </div>

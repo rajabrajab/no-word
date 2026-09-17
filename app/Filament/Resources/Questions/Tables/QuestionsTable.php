@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Questions\Tables;
 
+use App\Filament\Resources\Questions\QuestionResource;
 use App\Models\Country;
+use App\Models\Question;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -50,8 +52,12 @@ class QuestionsTable
             ])
             ->recordActions([
                 ActionGroup::make([
+                    // Without a URL a ViewAction opens a modal built from the disabled
+                    // form, where video and audio are an upload box rather than a
+                    // player. Send it to the view page instead.
+                    ViewAction::make()
+                        ->url(fn (Question $record): string => QuestionResource::getUrl('view', ['record' => $record])),
                     EditAction::make(),
-                    ViewAction::make(),
                     DeleteAction::make(),
                 ])->icon('heroicon-m-ellipsis-vertical'),
             ])

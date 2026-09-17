@@ -16,10 +16,12 @@ class QuestionResource extends JsonResource
             'question' => $this->question,
             'answer' => $this->answer,
             'hint' => $this->hint,
-            'media' => $this->media ? asset('storage/'.$this->media) : null,
-            'media_type' => $this->media_type,
-            'answer_media' => $this->answer_media ? asset('storage/'.$this->answer_media) : null,
-            'answer_media_type' => $this->answer_media_type,
+            'media' => $this->questionMediaUrl(),
+            // Resolved rather than raw: a blank or stale column would tell the app to
+            // render a voice note as a picture.
+            'media_type' => $this->questionMediaType(),
+            'answer_media' => $this->answerMediaUrl(),
+            'answer_media_type' => $this->answerMediaType(),
             'qr_code' => $this->qr_code ? asset('storage/'.$this->qr_code) : null,
             'is_answered' => isset($this->pivot) ? (bool) $this->pivot->is_answered : false,
         ];
