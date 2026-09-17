@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class CreateGameRequest extends FormRequest
 {
@@ -29,8 +28,7 @@ class CreateGameRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'categories.max' => 'Maximum of 6 categories allowed.',
+            'categories.max' => __('api.validation.categories_max'),
         ];
     }
 }
-

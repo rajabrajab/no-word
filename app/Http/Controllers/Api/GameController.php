@@ -53,14 +53,14 @@ class GameController extends Controller
     public function gameBoard(Request $request, Game $game)
     {
         if ($game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this game.');
+            return response()->sendError(403, __('api.game.unauthorized'));
         }
 
         $game = $this->gameService->getGameBoard($game);
 
         return response()->sendResponse(
             new GameBoardResource($game),
-            'Game board retrieved successfully.'
+            __('api.game.board_retrieved')
         );
     }
 
@@ -69,7 +69,7 @@ class GameController extends Controller
         $team = Team::with('game')->findOrFail($teamId);
 
         if ($team->game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this team.');
+            return response()->sendError(403, __('api.game.team_unauthorized'));
         }
 
         $validated = $request->validated();
@@ -82,7 +82,7 @@ class GameController extends Controller
         );
 
         return response()->sendResponse($result,
-            'Helping method marked as used successfully.'
+            __('api.game.helping_method_used')
         );
     }
 
@@ -97,7 +97,7 @@ class GameController extends Controller
         $game = Game::findOrFail($request->game_id);
 
         if ($game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this game.');
+            return response()->sendError(403, __('api.game.unauthorized'));
         }
 
         $question = Question::findOrFail($request->question_id);
@@ -106,7 +106,7 @@ class GameController extends Controller
 
         return response()->sendResponse(
             $result,
-            'Question marked as answered successfully.'
+            __('api.game.question_answered')
         );
     }
 
@@ -119,14 +119,14 @@ class GameController extends Controller
         $team = Team::with('game')->findOrFail($teamId);
 
         if ($team->game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this team.');
+            return response()->sendError(403, __('api.game.team_unauthorized'));
         }
 
         $team->update(['score' => $request->score]);
 
         return response()->sendResponse(
             [],
-            'Team score updated successfully.'
+            __('api.game.score_updated')
         );
     }
 
@@ -144,14 +144,14 @@ class GameController extends Controller
             $games->map(function ($game) {
                 return new MyGameResource($game);
             }),
-            'My games retrieved successfully.'
+            __('api.game.my_games_retrieved')
         );
     }
 
     public function reset(ResetGameRequest $request, Game $game)
     {
         if ($game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this game.');
+            return response()->sendError(403, __('api.game.unauthorized'));
         }
 
         $data = $request->validated();
@@ -159,14 +159,14 @@ class GameController extends Controller
 
         return response()->sendResponse(
             new GameBoardResource($game),
-            'Game reset successfully.'
+            __('api.game.reset')
         );
     }
 
     public function replaceQuestion(ReplaceQuestionRequest $request, Game $game)
     {
         if ($game->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this game.');
+            return response()->sendError(403, __('api.game.unauthorized'));
         }
 
         $questionId = $request->validated()['question_id'];
@@ -175,7 +175,7 @@ class GameController extends Controller
             $result = $this->gameService->replaceQuestion($game, $questionId);
 
             return response()->sendResponse(new QuestionResource($result),
-                'Question replaced successfully.'
+                __('api.game.question_replaced')
             );
         } catch (\Exception $e) {
             return response()->sendError(400, $e->getMessage());

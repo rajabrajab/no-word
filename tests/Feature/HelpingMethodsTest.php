@@ -174,7 +174,8 @@ class HelpingMethodsTest extends TestCase
             $service->applyHelpingMethod($team, $method, $stray->id);
             $this->fail('Expected the stray question to be rejected.');
         } catch (\Exception $e) {
-            $this->assertSame('Question not found in this game.', $e->getMessage());
+            // The message is translated now, so assert the line rather than the wording.
+            $this->assertSame(__('api.game.question_not_in_game'), $e->getMessage());
         }
 
         // The transaction rolled back, so the team keeps the help.

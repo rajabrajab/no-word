@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\Tournament;
-use App\Models\Team;
-use App\Models\TournamentRound;
-use App\Models\TournamentMatch;
 use App\Models\Game;
-use App\Models\Question;
+use App\Models\Team;
+use App\Models\Tournament;
+use App\Models\TournamentMatch;
+use App\Models\TournamentRound;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class TournamentService
 {
@@ -25,27 +24,28 @@ class TournamentService
      */
     protected function validateMatchForGame(TournamentMatch $match): void
     {
-        if (!$match->team1_id || !$match->team2_id) {
-            throw new \Exception('Match is not ready. Both teams must be set.');
+        if (! $match->team1_id || ! $match->team2_id) {
+            throw new \Exception(__('api.tournament.match_not_ready'));
         }
 
         if ($match->game_id !== null) {
-            throw new \Exception('Match already has a game linked.');
+            throw new \Exception(__('api.tournament.match_already_linked'));
         }
     }
 
     private function getRoundName(int $roundNumber, int $totalRounds): string
     {
         if ($roundNumber == $totalRounds) {
-            return "النهائي";
+            return 'النهائي';
         } elseif ($roundNumber == $totalRounds - 1) {
-            return "نصف النهائي";
+            return 'نصف النهائي';
         } elseif ($roundNumber == $totalRounds - 2) {
-            return "ربع النهائي";
+            return 'ربع النهائي';
         } elseif ($roundNumber == $totalRounds - 3) {
-            return "دور الـ 16";
+            return 'دور الـ 16';
         }
-        return "دور " . $roundNumber;
+
+        return 'دور '.$roundNumber;
     }
 
     public function createTournament(array $data, int $userId): Tournament
@@ -57,8 +57,8 @@ class TournamentService
             throw new \Exception("Team count must equal tournament size ({$size}).");
         }
 
-        if (!in_array($size, [4, 8, 16])) {
-            throw new \Exception("Tournament size must be 4, 8, or 16.");
+        if (! in_array($size, [4, 8, 16])) {
+            throw new \Exception(__('api.tournament.invalid_size'));
         }
 
         DB::beginTransaction();
@@ -147,10 +147,9 @@ class TournamentService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create tournament: ' . $e->getMessage());
+            throw new \Exception(__('api.tournament.create_failed'));
         }
     }
-
 
     public function getTournamentDetails(Tournament $tournament): Tournament
     {
@@ -189,11 +188,11 @@ class TournamentService
 
         try {
             if ($match->status !== 'pending') {
-                throw new \Exception('Match is not pending.');
+                throw new \Exception(__('api.tournament.match_not_pending'));
             }
 
             if ($match->team1_id != $winnerTeamId && $match->team2_id != $winnerTeamId) {
-                throw new \Exception('Winner must be one of the match teams.');
+                throw new \Exception(__('api.tournament.winner_not_in_match'));
             }
 
             $winner = Team::findOrFail($winnerTeamId);
@@ -254,21 +253,21 @@ class TournamentService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to set match winner: ' . $e->getMessage());
+            throw new \Exception(__('api.tournament.winner_set_failed'));
         }
     }
 
     public function linkGameToMatch(TournamentMatch $match, int $gameId): TournamentMatch
     {
         if ($match->status !== 'pending') {
-            throw new \Exception('Match is not pending.');
+            throw new \Exception(__('api.tournament.match_not_pending'));
         }
 
         $this->validateMatchForGame($match);
 
         $game = Game::find($gameId);
-        if (!$game) {
-            throw new \Exception('Game not found.');
+        if (! $game) {
+            throw new \Exception(__('api.game.not_found'));
         }
 
         $match->game_id = $gameId;
@@ -279,18 +278,18 @@ class TournamentService
 
     public function createGameForTournament(Tournament $tournament, array $data): Game
     {
-        $user = \App\Models\User::findOrFail($tournament->user_id);
+        $user = User::findOrFail($tournament->user_id);
         $teamIds = $data['teams'];
 
         if (count($teamIds) !== 2) {
-            throw new \Exception('Exactly 2 teams are required.');
+            throw new \Exception(__('api.tournament.exactly_two_teams'));
         }
 
         $team1 = Team::findOrFail($teamIds[0]);
         $team2 = Team::findOrFail($teamIds[1]);
 
         if ($team1->tournament_id !== $tournament->id || $team2->tournament_id !== $tournament->id) {
-            throw new \Exception('Teams must belong to the specified tournament.');
+            throw new \Exception(__('api.tournament.teams_not_in_tournament'));
         }
 
         $isDefault = $this->gameService->checkUserGamesRemaining($user);
@@ -304,7 +303,7 @@ class TournamentService
                 'tournament_game' => true,
             ]);
 
-            if (!$isDefault) {
+            if (! $isDefault) {
                 $user->decrementGamesRemaining();
             } else {
                 $user->update(['has_used_default_game' => true]);
@@ -313,7 +312,7 @@ class TournamentService
             $team1->update(['game_id' => $game->id]);
             $team2->update(['game_id' => $game->id]);
 
-            if (isset($data['categories']) && !empty($data['categories'])) {
+            if (isset($data['categories']) && ! empty($data['categories'])) {
                 $this->gameService->attachCategoriesAndQuestions($game, $data['categories']);
             }
 
@@ -321,10 +320,10 @@ class TournamentService
                 ->where(function ($query) use ($team1, $team2) {
                     $query->where(function ($q) use ($team1, $team2) {
                         $q->where('team1_id', $team1->id)
-                          ->where('team2_id', $team2->id);
+                            ->where('team2_id', $team2->id);
                     })->orWhere(function ($q) use ($team1, $team2) {
                         $q->where('team1_id', $team2->id)
-                          ->where('team2_id', $team1->id);
+                            ->where('team2_id', $team1->id);
                     });
                 })
                 ->whereNull('game_id')
@@ -340,7 +339,7 @@ class TournamentService
             return $game->load(['teams.avatar', 'categories', 'questions.category']);
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create game for tournament: ' . $e->getMessage());
+            throw new \Exception(__('api.tournament.game_create_failed'));
         }
     }
 }

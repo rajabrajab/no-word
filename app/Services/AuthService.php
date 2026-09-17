@@ -3,19 +3,17 @@
 namespace App\Services;
 
 use App\Constants\ResponseMessages;
-use App\Helpers\PhoneHelper;
 use App\Mail\OtpMail;
 use App\Models\User;
-use App\Models\VendorRegistrationRequest;
 use App\Traits\ImageUploadTrait;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Exception;
-
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -24,22 +22,24 @@ class AuthService
     use ImageUploadTrait;
 
     protected $status = false;
-    protected $message = '';
-    protected $data = [];
 
+    protected $message = '';
+
+    protected $data = [];
 
     public function register($data)
     {
         if (Cache::has($data['email'])) {
             $this->status = false;
-            $this->message = 'OTP already sent. Please check your email.';
+            $this->message = __('api.auth.otp_already_sent');
+
             return $this;
         }
 
         $otp = rand(100000, 999999);
 
         $imgPath = $data['profile_image'] ?? null;
-        $imgUrl  = $imgPath ? Storage::disk('public')->url($imgPath) : null;
+        $imgUrl = $imgPath ? Storage::disk('public')->url($imgPath) : null;
 
         $user = [
             'name' => $data['name'],
@@ -49,28 +49,29 @@ class AuthService
             'country_code' => $data['country_code'],
             'iso_code' => $data['iso_code'],
             'normalized' => $data['normalized'],
-            'profile_image'      => $imgUrl ?? null,
-            'profile_image_path'  => $imgPath ?? null,
+            'profile_image' => $imgUrl ?? null,
+            'profile_image_path' => $imgPath ?? null,
         ];
 
         $hashedPassword = Hash::make($data['password']);
 
-        try{
+        try {
             Mail::to($data['email'])->send(new OtpMail($otp));
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->status = false;
-            $this->message = 'Failed to send OTP. Error: ' . $e->getMessage();
+            Log::error('OTP mail failed', ['exception' => $e]);
+            $this->message = __('api.auth.otp_send_failed');
+
             return $this;
         }
 
         Cache::put($data['email'], [
             'code' => $otp,
-            'user_data' => array_merge($user, ['password' => $hashedPassword])
+            'user_data' => array_merge($user, ['password' => $hashedPassword]),
         ], now()->addMinutes(10));
 
         $this->status = true;
-        $this->message = 'OTP sent to your email.';
+        $this->message = __('api.auth.otp_sent');
         $this->data['user'] = $user;
 
         return $this;
@@ -84,22 +85,24 @@ class AuthService
 
         $user = User::where('email', $email)->first();
 
-        if(!$user){
+        if (! $user) {
             $this->status = false;
-            $this->message = 'User not found.';
+            $this->message = __('api.auth.user_not_found');
+
             return $this;
         }
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             $this->status = false;
             $this->message = ResponseMessages::UNAUTHORIZED;
+
             return $this;
         }
 
-        $token = $this->loginAndCreateToken($user,$request);
+        $token = $this->loginAndCreateToken($user, $request);
 
         $this->status = true;
-        $this->message = 'Logged in successfully.';
+        $this->message = __('api.auth.logged_in');
         $this->data['token'] = $token;
         $this->data['user'] = $user;
 
@@ -123,7 +126,7 @@ class AuthService
                     $this->deleteImage($user->profile_image);
                 }
                 $data['profile_image'] = null;
-            } elseif ($data['profile_image'] instanceof \Illuminate\Http\UploadedFile) {
+            } elseif ($data['profile_image'] instanceof UploadedFile) {
                 if ($user->profile_image) {
                     $this->deleteImage($user->profile_image);
                 }
@@ -135,34 +138,33 @@ class AuthService
         }
 
         $user->update($data);
+
         return $user;
     }
-
 
     public function sendPasswordRestOtp($email)
     {
         $otp = rand(100000, 999999);
 
-        try{
+        try {
             Mail::to($email)->send(new OtpMail($otp));
 
-
-           DB::table('password_resets')->updateOrInsert(
-            ['email' => $email],
-            [
-                'otp' => $otp,
-                'expires_at' => now()->addMinutes(15),
-                'created_at' => now(),
-            ]);
+            DB::table('password_resets')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'otp' => $otp,
+                    'expires_at' => now()->addMinutes(15),
+                    'created_at' => now(),
+                ]);
 
             $this->status = true;
-            $this->message = 'OTP sent successfully' ;
+            $this->message = __('api.auth.otp_sent');
 
             return $this;
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->status = false;
-            $this->message = 'Failed to send OTP. Error: ' . $e->getMessage();
+            Log::error('OTP mail failed', ['exception' => $e]);
+            $this->message = __('api.auth.otp_send_failed');
         }
 
         return $this;
@@ -170,28 +172,28 @@ class AuthService
 
     public function confirmPasswordOtp($data)
     {
-        $record = DB::table('password_resets')->where('email',$data['email'])->first();
+        $record = DB::table('password_resets')->where('email', $data['email'])->first();
 
-        if($record && $record->otp == $data['otp']){
-            if(Carbon::parse($record->expires_at)->lt(Carbon::now())) {
+        if ($record && $record->otp == $data['otp']) {
+            if (Carbon::parse($record->expires_at)->lt(Carbon::now())) {
 
                 $this->status = false;
-                $this->message = 'expired OTP.';
+                $this->message = __('api.auth.otp_expired');
 
                 return $this;
             }
             $this->status = true;
-            $this->message = 'OTP confirmed.';
-        }else{
+            $this->message = __('api.auth.otp_confirmed');
+        } else {
             $this->status = false;
-            $this->message = 'Invalid OTP.';
+            $this->message = __('api.auth.otp_invalid');
         }
 
         return $this;
 
     }
 
-    public function updatePassword($data,$request)
+    public function updatePassword($data, $request)
     {
 
         $user = User::where('email', $data['email'])->first();
@@ -202,16 +204,16 @@ class AuthService
 
             $user->tokens()->delete();
 
-            $token = $this->loginAndCreateToken($user,$request);
+            $token = $this->loginAndCreateToken($user, $request);
 
             DB::table('password_resets')->where('email', $data['email'])->delete();
 
             $this->status = true;
-            $this->message = 'Password updated successfully.';
+            $this->message = __('api.auth.password_updated');
             $this->data['token'] = $token;
             $this->data['user'] = $user;
         } else {
-            $this->message = 'User not found.';
+            $this->message = __('api.auth.user_not_found');
         }
 
         return $this;
@@ -221,9 +223,10 @@ class AuthService
     {
         $tempData = Cache::get($request['email']);
 
-        if (!$tempData) {
+        if (! $tempData) {
             $this->status = false;
-            $this->message = 'Invalid or expired temporary key.';
+            $this->message = __('api.auth.temporary_key_invalid');
+
             return $this;
         }
 
@@ -231,11 +234,10 @@ class AuthService
 
         if ($request['otp'] != $storedOtp) {
             $this->status = false;
-            $this->message = 'Invalid or expired OTP.';
+            $this->message = __('api.auth.otp_expired');
+
             return $this;
         }
-
-        $tempData;
 
         $user = User::create([
             'name' => $tempData['user_data']['name'],
@@ -254,20 +256,20 @@ class AuthService
         $user->save();
 
         $fcm_token = $request->header('x-token');
-        if($fcm_token){
+        if ($fcm_token) {
             $user->updateDeviceToken($fcm_token);
         }
 
-        $token = $this->loginAndCreateToken($user,$request);
+        $token = $this->loginAndCreateToken($user, $request);
 
         Cache::forget($request['email']);
 
         $this->status = true;
-        $this->message = "User Registerd succesfully !";
+        $this->message = __('api.auth.registered');
         $this->data['token'] = $token;
 
         if ($user->profile_image) {
-            $user->profile_image = url('storage/' . $user->profile_image);
+            $user->profile_image = url('storage/'.$user->profile_image);
         }
 
         $this->data['user'] = $user;
@@ -276,9 +278,9 @@ class AuthService
 
     }
 
-    private function loginAndCreateToken($user,$request = null)
+    private function loginAndCreateToken($user, $request = null)
     {
-        if($token = $request->header('x-token')){
+        if ($token = $request->header('x-token')) {
             $user->updateDeviceToken($token);
         }
 
@@ -295,9 +297,10 @@ class AuthService
 
         $cachedData = Cache::get($email);
 
-        if (!$cachedData) {
+        if (! $cachedData) {
             $this->status = false;
-            $this->message = 'No registration data found for this email.';
+            $this->message = __('api.auth.registration_data_missing');
+
             return $this;
         }
 
@@ -308,20 +311,21 @@ class AuthService
             Mail::to($email)->send(new OtpMail($newOtp));
 
             $this->status = true;
-            $this->message = 'New OTP sent to your email.';
+            $this->message = __('api.auth.otp_sent_again');
         } catch (Exception $e) {
             $this->status = false;
-            $this->message = 'Failed to send OTP. Error: ' . $e->getMessage();
+            Log::error('OTP mail failed', ['exception' => $e]);
+            $this->message = __('api.auth.otp_send_failed');
         }
 
         return $this;
     }
 
-     public function resendCodeForReset($email)
+    public function resendCodeForReset($email)
     {
         $existingOtp = DB::table('password_resets')
-                        ->where('email', $email)
-                        ->first();
+            ->where('email', $email)
+            ->first();
 
         if ($existingOtp && now()->lt($existingOtp->expires_at)) {
             $cooldownEnd = Carbon::parse($existingOtp->created_at)->addMinutes(2);
@@ -329,7 +333,8 @@ class AuthService
             if (now()->lt($cooldownEnd)) {
                 $remainingSeconds = now()->diffInSeconds($cooldownEnd);
                 $this->status = false;
-                $this->message = 'Please wait' . $remainingSeconds .'seconds before requesting a new code.';
+                $this->message = __('api.auth.otp_wait', ['seconds' => $remainingSeconds]);
+
                 return $this;
             }
         }
@@ -348,7 +353,7 @@ class AuthService
         $token = $this->loginAndCreateToken($user, $request);
 
         $this->status = true;
-        $this->message = 'Token refreshed successfully.' ;
+        $this->message = __('api.auth.token_refreshed');
 
         $this->data['token'] = $token;
         $this->data['user'] = $user;

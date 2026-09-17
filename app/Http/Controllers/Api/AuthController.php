@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
-use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
-
 
 class AuthController extends Controller
 {
@@ -27,7 +26,7 @@ class AuthController extends Controller
 
         $response = $this->authService->register($data);
 
-        if (!$response->status()) {
+        if (! $response->status()) {
             return response()->sendError(401, $response->message());
         }
 
@@ -42,23 +41,23 @@ class AuthController extends Controller
     {
         $response = $this->authService->login($request);
 
-        if (!$response->status()) {
-           return response()->sendError(401, $response->message());
+        if (! $response->status()) {
+            return response()->sendError(401, $response->message());
         }
 
         $user = $response->data()['user'];
 
         return response()->sendResponse([
             'token' => $response->data()['token'],
-            'user' => new UserResource($user)
-        ] , $response->message());
+            'user' => new UserResource($user),
+        ], $response->message());
     }
 
     public function logout(Request $request)
     {
         $this->authService->logout($request);
 
-        return response()->sendResponse([],'Logout successfully.');
+        return response()->sendResponse([], __('api.auth.logged_out'));
     }
 
     public function updateProfile(UpdateProfileRequest $request)
@@ -69,8 +68,8 @@ class AuthController extends Controller
         $user = $this->authService->updateProfile($data);
 
         return response()->sendResponse([
-            'user' => new UserResource($user)
-        ] , ResponseMessages::UPDATE_SUCCESS);
+            'user' => new UserResource($user),
+        ], ResponseMessages::UPDATE_SUCCESS);
     }
 
     public function verifyOtpAndRegister(Request $request)
@@ -85,8 +84,8 @@ class AuthController extends Controller
         if ($response->status()) {
             return response()->sendResponse([
                 'token' => $response->data()['token'],
-                'user' => new UserResource($response->data()['user'])
-            ] , $response->message());
+                'user' => new UserResource($response->data()['user']),
+            ], $response->message());
         }
 
         return response()->sendError(401, $response->message());
@@ -95,14 +94,14 @@ class AuthController extends Controller
     public function resendOtp(Request $request)
     {
         $data = $request->validate([
-            'email' => 'required'
+            'email' => 'required',
         ]);
 
         $response = $this->authService->resendRegisterCode($data['email']);
 
         if ($response->status()) {
 
-           return response()->sendResponse([], $response->message());
+            return response()->sendResponse([], $response->message());
         }
 
         return response()->sendError(401, $response->message());
@@ -114,9 +113,9 @@ class AuthController extends Controller
         $response = $this->authService->refreshToken($request);
 
         return response()->sendResponse([
-                'token' => $response->data()['token'],
-                'user' => new UserResource($response->data()['user'])
-        ] , $response->message());
+            'token' => $response->data()['token'],
+            'user' => new UserResource($response->data()['user']),
+        ], $response->message());
 
     }
 
@@ -127,6 +126,6 @@ class AuthController extends Controller
         $user->tokens()->delete();
         $user->delete();
 
-        return response()->sendResponse([], 'Account deleted successfully.');
+        return response()->sendResponse([], __('api.auth.account_deleted'));
     }
 }

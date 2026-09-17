@@ -20,8 +20,8 @@ class CreateTournamentMatchGameRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'categories.max' => 'Maximum of 6 categories allowed.',
-            'teams.size' => 'Exactly 2 teams are required.',
+            'categories.max' => __('api.validation.categories_max'),
+            'teams.size' => __('api.tournament.exactly_two_teams'),
         ];
     }
 }

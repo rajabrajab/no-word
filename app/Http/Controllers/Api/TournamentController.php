@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Constants\ResponseMessages;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateTournamentRequest;
 use App\Http\Requests\CreateTournamentMatchGameRequest;
+use App\Http\Requests\CreateTournamentRequest;
+use App\Http\Resources\MyTournamentResource;
 use App\Http\Resources\TournamentResource;
 use App\Http\Resources\TournamentTeamResource;
-use App\Http\Resources\MyTournamentResource;
 use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use App\Services\TournamentService;
@@ -55,7 +55,7 @@ class TournamentController extends Controller
     public function show(Tournament $tournament)
     {
         if ($tournament->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this tournament.');
+            return response()->sendError(403, __('api.tournament.unauthorized'));
         }
 
         try {
@@ -73,11 +73,11 @@ class TournamentController extends Controller
     public function setWinner(Request $request, Tournament $tournament, TournamentMatch $match)
     {
         if ($tournament->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this tournament.');
+            return response()->sendError(403, __('api.tournament.unauthorized'));
         }
 
         if ($match->tournament_id !== $tournament->id) {
-            return response()->sendError(400, 'Match does not belong to this tournament.');
+            return response()->sendError(400, __('api.tournament.match_not_in_tournament'));
         }
 
         $request->validate([
@@ -89,7 +89,7 @@ class TournamentController extends Controller
 
             return response()->sendResponse(
                 new TournamentResource($tournament),
-                'Winner set successfully.'
+                __('api.tournament.winner_set')
             );
         } catch (\Exception $e) {
             return response()->sendError(500, $e->getMessage());
@@ -99,11 +99,11 @@ class TournamentController extends Controller
     public function linkGameId(Request $request, Tournament $tournament, TournamentMatch $match)
     {
         if ($tournament->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this tournament.');
+            return response()->sendError(403, __('api.tournament.unauthorized'));
         }
 
         if ($match->tournament_id !== $tournament->id) {
-            return response()->sendError(400, 'Match does not belong to this tournament.');
+            return response()->sendError(400, __('api.tournament.match_not_in_tournament'));
         }
 
         $request->validate([
@@ -123,7 +123,7 @@ class TournamentController extends Controller
                     'team2' => $match->team2 ? new TournamentTeamResource($match->team2) : null,
                     'winner' => $match->winner ? new TournamentTeamResource($match->winner) : null,
                 ],
-                'Game linked successfully.'
+                __('api.tournament.game_linked')
             );
         } catch (\Exception $e) {
             return response()->sendError(500, $e->getMessage());
@@ -136,7 +136,7 @@ class TournamentController extends Controller
         $tournament = Tournament::findOrFail($data['tournament_id']);
 
         if ($tournament->user_id !== auth()->user()->id) {
-            return response()->sendError(403, 'Unauthorized access to this tournament.');
+            return response()->sendError(403, __('api.tournament.unauthorized'));
         }
 
         try {
@@ -144,7 +144,7 @@ class TournamentController extends Controller
 
             return response()->sendResponse(
                 ['game_id' => $game->id],
-                'Game created successfully.'
+                __('api.tournament.game_created')
             );
         } catch (\Exception $e) {
             return response()->sendError(500, $e->getMessage());

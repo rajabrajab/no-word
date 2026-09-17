@@ -1,13 +1,13 @@
 <?php
 
-
 use App\Constants\ResponseMessages;
+use App\Http\Middleware\SetApiLocale;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Auth\AuthenticationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,9 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Global rather than api-group: a request that matches no route never
+        // reaches group middleware, and its "not found" has to be translated too.
+        $middleware->prepend(SetApiLocale::class);
     })
-     ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (ValidationException $e, $request) {
             if ($request->expectsJson()) {
                 $errors = $e->errors();
@@ -38,20 +40,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AuthenticationException $e, $request) {
             if ($request->expectsJson()) {
-                return response()->sendError(440, "Ops!! Session expired");
+                return response()->sendError(440, ResponseMessages::SESSION_EXPIRED);
             }
         });
 
         $exceptions->render(function (Throwable $e, $request) {
-        if ($request->expectsJson()) {
+            if ($request->expectsJson()) {
                 $message = ResponseMessages::GENERAL_FAILURE;
-
 
                 if (config('app.debug')) {
                     $message = $e->getMessage();
                 }
 
-               return response()->sendError(500, $message);
+                return response()->sendError(500, $message);
             }
         });
     })->create();

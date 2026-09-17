@@ -80,6 +80,30 @@ return [
 
     'locale' => env('APP_LOCALE', 'ar'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Locale
+    |--------------------------------------------------------------------------
+    |
+    | The language the JSON API answers in when the client does not ask for one.
+    | Kept apart from `locale`, which follows the admin panel's own switcher.
+    |
+    */
+
+    'api_locale' => env('API_LOCALE', 'ar'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Full System Debug
+    |--------------------------------------------------------------------------
+    |
+    | Adds a `debug` key to every API response. Read through config so that it
+    | survives config:cache, which env() does not.
+    |
+    */
+
+    'full_system_debug' => env('FULL_SYSTEM_DEBUG', false),
+
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),

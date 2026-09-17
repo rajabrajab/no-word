@@ -80,11 +80,12 @@ class PackageController extends Controller
 
             return response()->sendResponse(
                 [],
-                'Subscription successful.'
+                __('api.package.subscribed')
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->sendError(500, 'Failed to subscribe to package: ' . $e->getMessage());
+
+            return response()->sendError(500, __('api.package.subscribe_failed'));
         }
     }
 
@@ -97,17 +98,17 @@ class PackageController extends Controller
             $coupon = Coupon::where('code', $data['coupon_code'])->first();
             $package = Package::findOrFail($data['package_id']);
 
-            if (!$coupon->is_active) {
-                return response()->sendError(500, 'Coupon is not active.');
+            if (! $coupon->is_active) {
+                return response()->sendError(500, __('api.package.coupon_inactive'));
             }
 
             if ($coupon->valid_to && $coupon->valid_to < now()) {
-                return response()->sendError(500, 'Coupon has expired.');
+                return response()->sendError(500, __('api.package.coupon_expired'));
             }
 
             $usesRemaining = $coupon->max_uses ? ($coupon->max_uses - ($coupon->used_count ?? 0)) : null;
             if ($usesRemaining !== null && $usesRemaining <= 0) {
-                return response()->sendError(500, 'Coupon has no remaining uses.');
+                return response()->sendError(500, __('api.package.coupon_exhausted'));
             }
 
             $originalPrice = $package->price;
@@ -123,24 +124,24 @@ class PackageController extends Controller
                 'price_after_discount' => $finalPrice,
             ], ResponseMessages::APPLY_COUPON_SUCCESS);
         } catch (\Exception $e) {
-            return response()->sendError(500, 'Failed to apply coupon: ' . $e->getMessage());
+            return response()->sendError(500, __('api.package.coupon_apply_failed'));
         }
     }
 
-    public function cancelSubscription(UserSubscription $subscription){
+    public function cancelSubscription(UserSubscription $subscription)
+    {
         $user = auth()->user();
 
         if ($subscription->user_id !== $user->id) {
-           throw new \Exception('You do not have permission to cancel this subscription.');
+            throw new \Exception(__('api.package.cancel_unauthorized'));
         }
 
         if ($subscription->status !== 'active') {
-            throw new \Exception('This subscription is already cancelled.');
+            throw new \Exception(__('api.package.already_cancelled'));
         }
 
         $subscription->update(['status' => 'cancelled']);
 
-        return response()->sendResponse([], 'Subscription cancelled successfully.');
+        return response()->sendResponse([], __('api.package.cancelled'));
     }
-
 }

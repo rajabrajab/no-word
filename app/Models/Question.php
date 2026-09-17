@@ -10,6 +10,25 @@ class Question extends BaseModel
 {
     use SoftDeletes;
 
+    /**
+     * The public question page is addressed by an unguessable token, never by the
+     * id: the QR codes are printed and handed out, so an id in the URL would let
+     * anyone holding one card walk the ids and read every question and answer.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $question): void {
+            if (blank($question->qr_token)) {
+                $question->qr_token = static::newQrToken();
+            }
+        });
+    }
+
+    public static function newQrToken(): string
+    {
+        return bin2hex(random_bytes(16));
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);

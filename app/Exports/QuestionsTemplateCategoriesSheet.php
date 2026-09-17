@@ -18,10 +18,15 @@ class QuestionsTemplateCategoriesSheet implements FromCollection, WithColumnWidt
 {
     public function collection(): Collection
     {
+        // Grouped by country, because the same category names repeat in every one of
+        // them: the country is what tells two identically named rows apart.
         return Category::query()
             ->with('country:id,name')
-            ->orderBy('name')
-            ->get(['id', 'name', 'country_id']);
+            ->join('countries', 'countries.id', '=', 'categories.country_id')
+            ->orderBy('countries.name')
+            ->orderBy('categories.name')
+            ->select(['categories.id', 'categories.name', 'categories.country_id'])
+            ->get();
     }
 
     public function title(): string
@@ -32,9 +37,9 @@ class QuestionsTemplateCategoriesSheet implements FromCollection, WithColumnWidt
     public function headings(): array
     {
         return [
-            __('panel.excel_category_name'),
             __('panel.excel_category_id'),
             __('panel.country'),
+            __('panel.excel_category_name'),
         ];
     }
 
@@ -45,9 +50,9 @@ class QuestionsTemplateCategoriesSheet implements FromCollection, WithColumnWidt
     public function map($row): array
     {
         return [
-            $row->name,
             $row->id,
             $row->country?->name,
+            $row->name,
         ];
     }
 
@@ -57,9 +62,9 @@ class QuestionsTemplateCategoriesSheet implements FromCollection, WithColumnWidt
     public function columnWidths(): array
     {
         return [
-            'A' => 32,
-            'B' => 14,
-            'C' => 24,
+            'A' => 14,
+            'B' => 24,
+            'C' => 32,
         ];
     }
 }

@@ -86,34 +86,32 @@ class ListQuestions extends ListRecords
         $importer = new QuestionsExcelImporter(app(QrCodeService::class));
         $importer->import($absolutePath);
 
+        $summary = __('panel.excel_import_summary', [
+            'created' => $importer->created,
+            'updated' => $importer->updated,
+            'unchanged' => $importer->unchanged,
+            'skipped' => $importer->skipped,
+        ]);
+
         if (! empty($importer->errors)) {
             $body = collect($importer->errors)
                 ->take(5)
                 ->map(fn (array $error): string => __('panel.bulk_excel_row').' '.$error['row'].': '.implode(' | ', $error['errors']))
                 ->implode("\n");
 
-            $notification = Notification::make()->body($body);
+            $touched = $importer->created + $importer->updated;
 
-            if ($importer->created > 0) {
-                $notification
-                    ->title(__('panel.bulk_excel_import_partial', [
-                        'created' => $importer->created,
-                        'skipped' => $importer->skipped,
-                    ]))
-                    ->warning();
-            } else {
-                $notification
-                    ->title(__('panel.bulk_excel_import_failed'))
-                    ->danger();
-            }
-
-            $notification->send();
+            Notification::make()
+                ->title($touched > 0 ? $summary : __('panel.bulk_excel_import_failed'))
+                ->body($body)
+                ->{$touched > 0 ? 'warning' : 'danger'}()
+                ->send();
 
             return;
         }
 
         Notification::make()
-            ->title(__('panel.bulk_excel_import_done', ['count' => $importer->created]))
+            ->title($summary)
             ->success()
             ->send();
     }

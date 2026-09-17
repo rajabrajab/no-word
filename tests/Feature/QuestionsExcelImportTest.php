@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exports\QuestionsExport;
 use App\Exports\QuestionsTemplateCategoriesSheet;
 use App\Exports\QuestionsTemplateExport;
 use App\Exports\QuestionsTemplateSheet;
@@ -122,7 +123,7 @@ class QuestionsExcelImportTest extends TestCase
         $this->assertSame(0, Question::query()->count());
     }
 
-    public function test_it_refuses_a_name_shared_by_two_categories(): void
+    public function test_it_refuses_a_name_shared_by_two_categories_and_says_why(): void
     {
         $this->makeCategory('Geography');
         $this->makeCategory('Geography');
@@ -132,7 +133,27 @@ class QuestionsExcelImportTest extends TestCase
         ]));
 
         $this->assertSame(0, $importer->created);
-        $this->assertNotEmpty($importer->errors);
+        // Every category name in this app is reused per country, so the message has to
+        // point at the ID rather than claim the category does not exist.
+        $this->assertSame(
+            __('panel.excel_ambiguous_category', ['category' => 'Geography', 'count' => 2]),
+            $importer->errors[0]['errors'][0] ?? null,
+        );
+    }
+
+    public function test_the_category_reference_sheet_leads_with_the_id(): void
+    {
+        $category = $this->makeCategory('Geography');
+
+        $sheet = new QuestionsTemplateCategoriesSheet;
+
+        $this->assertSame([
+            __('panel.excel_category_id'),
+            __('panel.country'),
+            __('panel.excel_category_name'),
+        ], $sheet->headings());
+
+        $this->assertSame([$category->id, 'Saudi Arabia', 'Geography'], $sheet->map($sheet->collection()->first()));
     }
 
     public function test_it_skips_a_blank_row_between_questions_without_reporting_an_error(): void
@@ -196,7 +217,7 @@ class QuestionsExcelImportTest extends TestCase
         $this->assertInstanceOf(QuestionsTemplateCategoriesSheet::class, $sheets[1]);
 
         $reference = $sheets[1];
-        $this->assertSame([$category->name, $category->id, 'Saudi Arabia'], $reference->map($reference->collection()->first()));
+        $this->assertSame([$category->id, 'Saudi Arabia', $category->name], $reference->map($reference->collection()->first()));
     }
 
     public function test_the_downloaded_template_imports_once_it_is_filled_in(): void
@@ -220,6 +241,248 @@ class QuestionsExcelImportTest extends TestCase
         $this->assertSame([], $importer->errors);
         $this->assertSame(1, $importer->created);
         $this->assertSame($category->id, Question::query()->firstOrFail()->category_id);
+    }
+
+    public function test_a_row_that_keeps_its_id_edits_that_question_instead_of_adding_one(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Old text', 'answer' => 'Old answer', 'score' => 200]);
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'New text', 'New answer', 'New hint', 400],
+        ]));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(1, $importer->updated);
+        $this->assertSame(0, $importer->created);
+        $this->assertSame(1, Question::query()->count());
+
+        $question->refresh();
+        $this->assertSame('New text', $question->question);
+        $this->assertSame('New answer', $question->answer);
+        $this->assertSame('New hint', $question->hint);
+        $this->assertSame(400, $question->score);
+    }
+
+    public function test_re_uploading_an_untouched_export_changes_nothing(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Q1', 'answer' => 'A1', 'hint' => 'H1', 'score' => 200]);
+        $before = $question->updated_at;
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1', 'A1', 'H1', 200],
+        ]));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(0, $importer->updated);
+        $this->assertSame(0, $importer->created);
+        $this->assertSame(1, $importer->unchanged);
+        $this->assertEquals($before, $question->fresh()->updated_at);
+    }
+
+    public function test_a_row_with_no_id_is_added_alongside_the_edited_ones(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Q1', 'answer' => 'A1']);
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1 edited', 'A1', null, 200],
+            [null, $category->id, $category->name, 'Brand new', 'A2', null, 600],
+        ]));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(1, $importer->updated);
+        $this->assertSame(1, $importer->created);
+        $this->assertSame(2, Question::query()->count());
+        $this->assertSame('Q1 edited', $question->fresh()->question);
+    }
+
+    public function test_an_id_that_no_longer_exists_is_reported_and_creates_nothing(): void
+    {
+        $category = $this->makeCategory('Geography');
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [4242, $category->id, $category->name, 'Q1', 'A1', null, 200],
+        ]));
+
+        $this->assertSame(0, $importer->created);
+        $this->assertSame(0, $importer->updated);
+        $this->assertSame(1, $importer->skipped);
+        $this->assertStringContainsString('4242', $importer->errors[0]['errors'][0] ?? '');
+        $this->assertSame(0, Question::query()->count());
+    }
+
+    public function test_an_edit_leaves_media_alone_when_the_row_carries_none(): void
+    {
+        $category = $this->makeCategory('Geography');
+        Storage::disk('public')->put('questions/keep.png', 'fake');
+        $question = $this->makeQuestion($category, [
+            'question' => 'Q1',
+            'answer' => 'A1',
+            'media' => 'questions/keep.png',
+            'media_type' => 'image',
+        ]);
+
+        $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1 edited', 'A1', null, 200],
+        ]));
+
+        $question->refresh();
+        $this->assertSame('Q1 edited', $question->question);
+        // The export draws pictures onto the sheet, so a blank cell is not a removal.
+        $this->assertSame('questions/keep.png', $question->media);
+        $this->assertSame('image', $question->media_type);
+    }
+
+    public function test_an_edit_replaces_media_when_the_row_carries_a_new_picture(): void
+    {
+        $category = $this->makeCategory('Geography');
+        Storage::disk('public')->put('questions/old.png', 'fake');
+        $question = $this->makeQuestion($category, [
+            'question' => 'Q1',
+            'answer' => 'A1',
+            'media' => 'questions/old.png',
+            'media_type' => 'image',
+        ]);
+
+        $this->import($this->buildExportWorkbook(
+            [[$question->id, $category->id, $category->name, 'Q1', 'A1', null, 200]],
+            questionImage: true,
+        ));
+
+        $question->refresh();
+        $this->assertNotSame('questions/old.png', $question->media);
+        $this->assertStringStartsWith('questions/', $question->media);
+        $this->assertSame('image', $question->media_type);
+    }
+
+    public function test_re_uploading_an_exported_picture_keeps_the_file_it_came_from(): void
+    {
+        $category = $this->makeCategory('Geography');
+
+        $png = file_get_contents($this->makePng(3));
+        Storage::disk('public')->put('questions/original.png', $png);
+
+        $question = $this->makeQuestion($category, [
+            'question' => 'Q1',
+            'answer' => 'A1',
+            'media' => 'questions/original.png',
+            'media_type' => 'image',
+        ]);
+
+        // The export draws the stored picture onto the sheet; re-uploading it untouched
+        // must not stack up a fresh copy of the same bytes on every round trip.
+        $importer = $this->import($this->buildExportWorkbook(
+            [[$question->id, $category->id, $category->name, 'Q1', 'A1', null, 200]],
+            questionImage: true,
+            questionImagePath: 'questions/original.png',
+        ));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(0, $importer->updated);
+        $this->assertSame(1, $importer->unchanged);
+        $this->assertSame('questions/original.png', $question->fresh()->media);
+        $this->assertCount(1, Storage::disk('public')->files('questions'));
+    }
+
+    public function test_an_edit_keeps_media_named_by_its_stored_path(): void
+    {
+        $category = $this->makeCategory('Geography');
+        Storage::disk('public')->put('questions/clip.mp4', 'fake');
+        $question = $this->makeQuestion($category, [
+            'question' => 'Q1',
+            'answer' => 'A1',
+            'media' => 'questions/clip.mp4',
+            'media_type' => 'video',
+        ]);
+
+        // The export writes the path as text for media it cannot draw.
+        $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1', 'A1', null, 200, 'questions/clip.mp4'],
+        ]));
+
+        $question->refresh();
+        $this->assertSame('questions/clip.mp4', $question->media);
+        $this->assertSame('video', $question->media_type);
+    }
+
+    public function test_an_edit_ignores_a_media_path_that_names_no_file(): void
+    {
+        $category = $this->makeCategory('Geography');
+        Storage::disk('public')->put('questions/real.png', 'fake');
+        $question = $this->makeQuestion($category, [
+            'question' => 'Q1',
+            'answer' => 'A1',
+            'media' => 'questions/real.png',
+            'media_type' => 'image',
+        ]);
+
+        $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1', 'A1', null, 200, 'questions/typo.png'],
+        ]));
+
+        $this->assertSame('questions/real.png', $question->fresh()->media);
+    }
+
+    public function test_an_edit_moves_a_question_to_another_category(): void
+    {
+        $geography = $this->makeCategory('Geography');
+        $history = $this->makeCategory('History');
+        $question = $this->makeQuestion($geography, ['question' => 'Q1', 'answer' => 'A1']);
+
+        $this->import($this->buildExportWorkbook([
+            [$question->id, $history->id, $history->name, 'Q1', 'A1', null, 200],
+        ]));
+
+        $this->assertSame($history->id, $question->fresh()->category_id);
+    }
+
+    public function test_a_row_whose_category_id_and_name_disagree_is_refused(): void
+    {
+        $geography = $this->makeCategory('Geography');
+        $history = $this->makeCategory('History');
+        $question = $this->makeQuestion($geography, ['question' => 'Q1', 'answer' => 'A1']);
+
+        // Editing the readable name but leaving the stale id would otherwise move the
+        // question wherever the losing column pointed.
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $geography->id, $history->name, 'Q1', 'A1', null, 200],
+        ]));
+
+        $this->assertSame(0, $importer->updated);
+        $this->assertSame(1, $importer->skipped);
+        $this->assertNotEmpty($importer->errors);
+        $this->assertSame($geography->id, $question->fresh()->category_id);
+    }
+
+    public function test_an_edit_that_names_no_category_keeps_the_current_one(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Q1', 'answer' => 'A1']);
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, null, null, 'Q1 edited', 'A1', null, 200],
+        ]));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(1, $importer->updated);
+        $this->assertSame($category->id, $question->fresh()->category_id);
+    }
+
+    public function test_the_export_headings_are_the_layout_the_importer_reads(): void
+    {
+        $this->assertSame([
+            __('panel.excel_id'),
+            __('panel.excel_category_id'),
+            __('panel.excel_category_name'),
+            __('panel.excel_question'),
+            __('panel.excel_answer'),
+            __('panel.excel_hint'),
+            __('panel.excel_score'),
+            __('panel.bulk_excel_media_column'),
+            __('panel.bulk_excel_answer_media_column'),
+        ], (new QuestionsExport)->headings());
     }
 
     private function import(string $path): QuestionsExcelImporter
@@ -272,6 +535,56 @@ class QuestionsExcelImportTest extends TestCase
         }
 
         return $this->save($spreadsheet);
+    }
+
+    /**
+     * Write a workbook shaped like the sheet "Export questions to Excel" produces.
+     *
+     * @param  list<list<string|int|null>>  $rows  id, category id, category name, question, answer, hint, score, media path
+     */
+    private function buildExportWorkbook(array $rows, bool $questionImage = false, ?string $questionImagePath = null): string
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+
+        foreach ((new QuestionsExport)->headings() as $i => $heading) {
+            $sheet->setCellValue([$i + 1, 1], $heading);
+        }
+
+        foreach ($rows as $rowIndex => $row) {
+            $excelRow = $rowIndex + 2;
+
+            foreach ($row as $i => $value) {
+                if ($value !== null) {
+                    $sheet->setCellValue([$i + 1, $excelRow], $value);
+                }
+            }
+
+            if ($rowIndex === 0 && $questionImage) {
+                // Mirror the export, which draws the file already on disk onto the sheet.
+                $source = $questionImagePath === null
+                    ? $this->makePng(1)
+                    : Storage::disk('public')->path($questionImagePath);
+
+                $this->attachDrawing($sheet, 'H'.$excelRow, $source);
+            }
+        }
+
+        return $this->save($spreadsheet);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function makeQuestion(Category $category, array $attributes = []): Question
+    {
+        return Question::query()->create(array_merge([
+            'category_id' => $category->id,
+            'question' => 'Q?',
+            'answer' => 'A',
+            'score' => 200,
+            'qr_code' => 'qr-codes/existing.svg',
+        ], $attributes));
     }
 
     private function save(Spreadsheet $spreadsheet): string

@@ -17,8 +17,8 @@ class RegisterRequest extends FormRequest
             'iso_code' => 'nullable|string|max:5',
             'number' => ['required', function ($attribute, $value, $fail) {
                 $normalized = PhoneHelper::normalize($value);
-                if (!$normalized) {
-                    $fail('The phone number is invalid or not supported.');
+                if (! $normalized) {
+                    $fail(__('api.validation.phone_invalid'));
                 }
             }],
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -29,11 +29,11 @@ class RegisterRequest extends FormRequest
     {
         $data = parent::validated($key, $default);
 
-        if (!empty($data['number'])) {
+        if (! empty($data['number'])) {
             $data['normalized'] = PhoneHelper::normalize($data['number']);
         }
 
-        if (!empty($data['profile_image'])) {
+        if (! empty($data['profile_image'])) {
             $data['profile_image'] = $data['profile_image']->store('profile_images', 'public');
         }
 

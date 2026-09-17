@@ -22,7 +22,7 @@ class GameService
     {
         if (! $user->hasRemainingGames()) {
             if ($user->has_used_default_game) {
-                throw new \Exception('You have no remaining games in your subscription. Please subscribe to a package.');
+                throw new \Exception(__('api.game.no_remaining_games'));
             }
 
             return true;
@@ -109,7 +109,7 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create game: '.$e->getMessage());
+            throw new \Exception(__('api.game.create_failed'));
         }
     }
 
@@ -122,7 +122,7 @@ class GameService
             ->exists();
 
         if ($alreadyUsed) {
-            throw new \Exception('This helping method has already been used.');
+            throw new \Exception(__('api.game.helping_method_already_used'));
         }
 
         $team->usedHelpingMethods()->attach($helpingMethodId, ['question_id' => $questionId]);
@@ -178,7 +178,7 @@ class GameService
                 $team = Team::findOrFail($teamId);
 
                 if ($team->game_id !== $game->id) {
-                    throw new \Exception('Team does not belong to this game.');
+                    throw new \Exception(__('api.game.team_not_in_game'));
                 }
 
                 $scoreAwarded = (int) ($question->score ?? 0);
@@ -249,7 +249,7 @@ class GameService
             ->first();
 
         if (! $question) {
-            throw new \Exception('Question not found in this game.');
+            throw new \Exception(__('api.game.question_not_in_game'));
         }
 
         return $question;
@@ -258,7 +258,7 @@ class GameService
     private function requireQuestionId(?int $questionId): int
     {
         if ($questionId === null) {
-            throw new \Exception('A question_id is required for this helping method.');
+            throw new \Exception(__('api.game.helping_method_needs_question'));
         }
 
         return $questionId;
@@ -313,7 +313,7 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to reset game: '.$e->getMessage());
+            throw new \Exception(__('api.game.reset_failed'));
         }
     }
 
@@ -366,7 +366,7 @@ class GameService
             return $game;
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to create random game: '.$e->getMessage());
+            throw new \Exception(__('api.game.create_failed'));
         }
     }
 
@@ -383,7 +383,7 @@ class GameService
                 ->first();
 
             if (! $questionToReplace) {
-                throw new \Exception('Question not found in this game.');
+                throw new \Exception(__('api.game.question_not_in_game'));
             }
 
             $newQuestionId = Question::query()
@@ -394,7 +394,7 @@ class GameService
                 ->first(['id']);
 
             if (! $newQuestionId) {
-                throw new \Exception('No alternative question found with the same category and level.');
+                throw new \Exception(__('api.game.no_alternative_question'));
             }
 
             DB::table('game_questions')
@@ -422,7 +422,7 @@ class GameService
 
         } catch (\Exception $e) {
             DB::rollBack();
-            throw new \Exception('Failed to replace question: '.$e->getMessage());
+            throw new \Exception(__('api.game.replace_failed'));
         }
     }
 }
