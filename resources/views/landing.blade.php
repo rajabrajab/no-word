@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/landing/index-w30Tua3B.js"></script>
+    <script type="module" crossorigin src="/landing/index-DFMB7uVw.js"></script>
     <link rel="stylesheet" crossorigin href="/landing/index-C7PR_fkt.css">
   </head>
   <body>

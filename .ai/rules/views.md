@@ -21,6 +21,8 @@ Two things constrain any change to it:
 - **Everything is a list, never a map keyed by score.** JsonResource::removeMissingValues() runs array_values() over any nested array whose keys are all numeric, so `{200: [...], 400: [...]}` silently comes out renumbered `0, 1, 2`. CategoryResource's `answer_times` works around the same trap.
 - **Each block falls back to the demo constants in LandingShowcaseService** when the database cannot fill it, as unsaved Category/Question/Country models so the resource keeps one shape to render. An unseeded or partly-filled database must still render a finished page; the blocks fall back one at a time.
 
-The bundle in public/landing/ still ships the hand-written arrays (BoardDemo.jsx, Marquee.jsx, Modes.jsx) and does not call this endpoint yet — wiring it up is a change in the wala_kalima_landing_page project, followed by the rebuild-and-replace dance above.
+The bundle calls it through `src/showcase.js` in the wala_kalima_landing_page project: one shared request, and each of BoardDemo / Marquee / Modes keeps its old hand-written array as the value it starts on and stays on if the request fails. That is what makes `npm run dev` work with no Laravel behind it, so do not delete those arrays when editing those components.
+
+Two shapes are cut to fit the design rather than to fit the data: `COUNTRIES` is 3 because the bundle lays the country picker out as one row of buttons (the live database has 18 countries and would wrap it into a wall), and the board deduplicates category names before picking, because every country runs its own "الفنون" and three rows drawn at random are often the same word twice.
 
 Note it hands a few real question/answer pairs to an unauthenticated caller, which is the one place that happens by design (contrast the token-bound question page in .ai/rules/routes.md). Keep the sample small; if harvesting ever matters, cache the payload for a few minutes rather than widening it.

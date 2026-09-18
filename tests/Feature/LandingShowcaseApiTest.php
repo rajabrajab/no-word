@@ -70,6 +70,29 @@ class LandingShowcaseApiTest extends TestCase
         $this->assertSame(['orange', 'green', 'blue'], array_column($board, 'tone'));
     }
 
+    public function test_the_board_never_shows_the_same_category_name_twice(): void
+    {
+        // Every country runs its own copy of the popular names, so picking three rows
+        // at random would often put the same word in two columns.
+        foreach (['السعودية', 'الإمارات', 'الكويت', 'قطر'] as $countryName) {
+            $country = Country::query()->create(['name' => $countryName]);
+
+            foreach (['الفنون', 'العلوم'] as $categoryName) {
+                $category = Category::query()->create(['name' => $categoryName, 'country_id' => $country->id]);
+
+                foreach (Category::SCORES as $score) {
+                    $this->makeQuestion($category, $score);
+                }
+            }
+        }
+
+        for ($attempt = 0; $attempt < 15; $attempt++) {
+            $names = array_column($this->getJson('/api/landing')->json('data.board'), 'category');
+
+            $this->assertSame(array_unique($names), $names, 'The board repeated a category name.');
+        }
+    }
+
     public function test_a_category_missing_a_score_tier_never_reaches_the_board(): void
     {
         $full = $this->makeFullCategory('جغرافيا');
@@ -140,6 +163,23 @@ class LandingShowcaseApiTest extends TestCase
 
         $this->assertSame(['تاريخ الكويت'], $countries['الكويت']);
         $this->assertSame(['معالم قطر'], $countries['قطر']);
+    }
+
+    public function test_the_country_strip_is_cut_to_the_row_the_design_has_buttons_for(): void
+    {
+        foreach (['السعودية', 'الإمارات', 'الكويت', 'قطر', 'البحرين', 'عُمان'] as $name) {
+            $country = Country::query()->create(['name' => $name]);
+            Category::query()->create(['name' => "فئة {$name}", 'country_id' => $country->id]);
+        }
+
+        $countries = $this->getJson('/api/landing')->json('data.countries');
+
+        $this->assertCount(LandingShowcaseService::COUNTRIES, $countries);
+        // Stable order, so the picker does not deal a different hand on every reload.
+        $this->assertSame(
+            ['السعودية', 'الإمارات', 'الكويت'],
+            array_column($countries, 'name')
+        );
     }
 
     public function test_a_country_that_is_switched_off_or_empty_is_left_out(): void

@@ -39,6 +39,15 @@ class LandingShowcaseService
     public const COUNTRY_CATEGORIES = 8;
 
     /**
+     * Countries the strip has buttons for.
+     *
+     * The bundle lays these out as one row of radio buttons and shipped with three.
+     * Every country in the table would wrap that row into a wall, so the strip is cut
+     * to the width the design was drawn for — raise this only alongside the CSS.
+     */
+    public const COUNTRIES = 3;
+
+    /**
      * The board the landing bundle shipped with, used when no category can fill one.
      *
      * @var array<string, array<int, array{string, string}>>
@@ -153,9 +162,15 @@ class LandingShowcaseService
                     $query->whereHas('questions', fn (Builder $questions) => $questions->where('score', $score));
                 }
             })
-            ->inRandomOrder()
-            ->limit(self::BOARD_CATEGORIES)
-            ->get();
+            ->get(['id', 'name', 'country_id'])
+            // Shuffled before the names are deduplicated, so both which name wins and
+            // which country's copy of it is drawn stay random. Deduplicating matters:
+            // every country runs its own "الفنون", and three columns picked purely at
+            // random will often be the same word twice, which reads as a broken board.
+            ->shuffle()
+            ->unique(fn (Category $category): string => mb_strtolower(trim((string) $category->name)))
+            ->take(self::BOARD_CATEGORIES)
+            ->values();
 
         if ($categories->isEmpty()) {
             return [];
@@ -229,6 +244,10 @@ class LandingShowcaseService
                     ->byLanguage(app()->getLocale())
                     ->select(['id', 'name', 'country_id']),
             ])
+            // Taken in the table's own order rather than at random: this strip is a
+            // picker the visitor clicks through, and a set that reshuffled on every
+            // reload would read as a glitch rather than as variety.
+            ->limit(self::COUNTRIES)
             ->get();
     }
 }
