@@ -8,7 +8,14 @@ paths:
 ## The questions import upserts by the exported id, and never blanks media
 QuestionsExcelImporter accepts two sheets and tells them apart by the header row: the blank template (7 columns, no id) and the sheet from "Export questions to Excel" (9 columns, leading with the id).
 
-The id column is the update key. A row that keeps its exported id edits that question in place; a row with a blank id adds a new one. An id that matches nothing is reported and skipped — never created with a forced id, which would collide with the auto-increment.
+The id column is the update key. A row that keeps its exported id edits that question in place; a row with a blank id adds a new one.
+
+A missing id never fails the row, because an old export is exactly the sheet an admin re-uploads to undo a deletion:
+
+- An id whose question was soft-deleted restores it in place. Restoring rather than copying keeps the id the sheet is built around, the qr token already printed on the cards, and the games it belongs to. It counts as an addition and is written even when no field changed — the unchanged shortcut would otherwise leave it deleted.
+- An id matching nothing at all is added as a new question under a *fresh* id, silently. Never insert with the sheet's id forced: that leaves the table's auto-increment behind and collides with the next insert.
+
+Only a cell that is not a number at all is reported and skipped.
 
 Two rules exist because re-uploading an export must be safe:
 

@@ -162,7 +162,6 @@ return [
     'excel_categories_sheet' => 'الفئات',
     'excel_unknown_category' => 'لا توجد فئة مطابقة لـ ":category". انسخ المعرف من ورقة «الفئات».',
     'excel_ambiguous_category' => 'يوجد :count فئة بالاسم ":category"، واحدة لكل دولة. انسخ معرف الفئة المقصودة من ورقة «الفئات».',
-    'excel_unknown_id' => 'لا يوجد سؤال بالمعرف :id. امسح خلية المعرف لإضافته كسؤال جديد.',
     'excel_category_mismatch' => 'معرف الفئة :id واسم الفئة ":name" يشيران إلى فئتين مختلفتين. صحّح أحدهما ليشير الصف إلى فئة واحدة.',
     'excel_invalid_id' => 'المعرف ":id" ليس رقماً. امسح الخلية لإضافة سؤال جديد، أو أعد المعرف كما كان في ملف التصدير.',
     'excel_import_summary' => 'تمت إضافة :created، وتحديث :updated، ودون تغيير :unchanged، وتخطي :skipped.',

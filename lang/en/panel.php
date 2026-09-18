@@ -164,7 +164,6 @@ return [
     'excel_categories_sheet' => 'Categories',
     'excel_unknown_category' => 'No category matches ":category". Copy an ID from the Categories sheet.',
     'excel_ambiguous_category' => ':count categories are named ":category", one per country. Copy the ID of the one you mean from the Categories sheet.',
-    'excel_unknown_id' => 'No question has ID :id. Clear the ID cell to add it as a new question.',
     'excel_category_mismatch' => 'Category ID :id and category name ":name" are two different categories. Fix one of them so the row names a single category.',
     'excel_invalid_id' => 'The ID ":id" is not a number. Clear the cell to add a new question, or restore the exported ID.',
     'excel_import_summary' => 'Added :created, updated :updated, unchanged :unchanged, skipped :skipped.',

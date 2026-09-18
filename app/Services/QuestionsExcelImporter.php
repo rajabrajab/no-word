@@ -16,10 +16,11 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  *
  * Two sheets are accepted: the blank template, where every row is a new question,
  * and the sheet produced by "Export questions to Excel", which carries each
- * question's id. A row that keeps its id edits that question in place; a row with
- * no id — the template, or a line typed under the exported ones — adds a new one.
- * Nothing is ever deleted, and a question is only written when the row actually
- * changes it.
+ * question's id. A row that keeps its id edits that question in place, bringing it
+ * back when an admin has since deleted it; a row with no id — the template, or a
+ * line typed under the exported ones — adds a new one, as does a row whose id names
+ * no question at all. Nothing is ever deleted, and a live question is only written
+ * when the row actually changes it.
  */
 class QuestionsExcelImporter extends BaseQuestionsExcelImporter
 {
@@ -144,7 +145,7 @@ class QuestionsExcelImporter extends BaseQuestionsExcelImporter
 
         $existing = $id === '' ? null : $this->findQuestion($id, $excelRow);
 
-        if ($id !== '' && $existing === null) {
+        if ($existing === false) {
             return;
         }
 
@@ -228,6 +229,12 @@ class QuestionsExcelImporter extends BaseQuestionsExcelImporter
 
         $validated = $validator->validated();
 
+        if ($existing !== null && $existing->trashed()) {
+            $this->restoreQuestion($existing, $validated);
+
+            return;
+        }
+
         if ($existing !== null) {
             $this->updateQuestion($existing, $validated);
 
@@ -238,6 +245,34 @@ class QuestionsExcelImporter extends BaseQuestionsExcelImporter
         $created->update([
             'qr_code' => $this->qrCodeService->generateForQuestion($created),
         ]);
+        $this->created++;
+    }
+
+    /**
+     * Bring back the question an id names after an admin deleted it, carrying the
+     * row's edits in with it.
+     *
+     * Restoring in place rather than adding a copy keeps the id the sheet is built
+     * around, the qr token already printed on the cards, and the games the question
+     * belongs to. It counts as a creation because the question was gone from the
+     * panel before the import, and it is written even when no field changed — the
+     * row's point was to undo the deletion.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function restoreQuestion(Question $question, array $validated): void
+    {
+        $question->fill($validated);
+        $question->restore();
+
+        // A question deleted before it was ever drawn a code comes back without one,
+        // and every other path that makes a question guarantees one.
+        if (blank($question->qr_code)) {
+            $question->update([
+                'qr_code' => $this->qrCodeService->generateForQuestion($question),
+            ]);
+        }
+
         $this->created++;
     }
 
@@ -265,9 +300,19 @@ class QuestionsExcelImporter extends BaseQuestionsExcelImporter
     }
 
     /**
-     * Look up the question a row claims to edit, recording why it cannot be found.
+     * Look up the question a row claims to edit.
+     *
+     * The recycle bin is searched too: an admin who deletes a question and uploads a
+     * sheet still carrying its id means to bring it back, so a deleted question is
+     * handed over to be restored rather than refused.
+     *
+     * An id matching nothing at all is not an error either — the row is simply added
+     * as a new question, under a fresh id. Forcing the sheet's id onto it would leave
+     * the table's auto-increment behind and collide with the next insert.
+     *
+     * @return Question|false|null The question, false when the cell is not an id at all, null when no question has it.
      */
-    private function findQuestion(string $id, int $excelRow): ?Question
+    private function findQuestion(string $id, int $excelRow): Question|false|null
     {
         if (! ctype_digit($id)) {
             $this->errors[] = [
@@ -276,20 +321,10 @@ class QuestionsExcelImporter extends BaseQuestionsExcelImporter
             ];
             $this->skipped++;
 
-            return null;
+            return false;
         }
 
-        $question = Question::query()->find((int) $id);
-
-        if ($question === null) {
-            $this->errors[] = [
-                'row' => $excelRow,
-                'errors' => [__('panel.excel_unknown_id', ['id' => $id])],
-            ];
-            $this->skipped++;
-        }
-
-        return $question;
+        return Question::withTrashed()->find((int) $id);
     }
 
     /**

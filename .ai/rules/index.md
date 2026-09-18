@@ -9,4 +9,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Filament/Resources/** | .ai/rules/resources.md |
 | routes/** | .ai/rules/routes.md |
 | app/Services/** | .ai/rules/services.md |
-| resources/views/landing.blade.php | .ai/rules/views.md |
+| resources/views/landing.blade.php, app/**/Landing* | .ai/rules/views.md |

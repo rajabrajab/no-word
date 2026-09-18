@@ -1,6 +1,16 @@
 <?php
 
-use App\Http\Controllers\Api\{AuthController, CategoryController, CountryController, GameController, HelpingMethodController, PasswordController, PlayerAvatarController, PackageController, TournamentController, PoliciesConditionController};
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CountryController;
+use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\HelpingMethodController;
+use App\Http\Controllers\Api\LandingController;
+use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\PasswordController;
+use App\Http\Controllers\Api\PlayerAvatarController;
+use App\Http\Controllers\Api\PoliciesConditionController;
+use App\Http\Controllers\Api\TournamentController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -19,6 +29,7 @@ Route::post('resend-password-otp', [PasswordController::class, 'sendPasswordRest
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('countries', [CountryController::class, 'index']);
+Route::get('landing', [LandingController::class, 'index']);
 Route::get('helping-methods', [HelpingMethodController::class, 'index']);
 Route::get('player-avatars', [PlayerAvatarController::class, 'index']);
 

@@ -298,7 +298,7 @@ class QuestionsExcelImportTest extends TestCase
         $this->assertSame('Q1 edited', $question->fresh()->question);
     }
 
-    public function test_an_id_that_no_longer_exists_is_reported_and_creates_nothing(): void
+    public function test_an_id_that_names_no_question_is_added_as_a_new_one(): void
     {
         $category = $this->makeCategory('Geography');
 
@@ -306,11 +306,58 @@ class QuestionsExcelImportTest extends TestCase
             [4242, $category->id, $category->name, 'Q1', 'A1', null, 200],
         ]));
 
-        $this->assertSame(0, $importer->created);
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(1, $importer->created);
         $this->assertSame(0, $importer->updated);
-        $this->assertSame(1, $importer->skipped);
-        $this->assertStringContainsString('4242', $importer->errors[0]['errors'][0] ?? '');
-        $this->assertSame(0, Question::query()->count());
+        $this->assertSame(0, $importer->skipped);
+
+        // Under a fresh id: forcing the sheet's 4242 in would leave the table's
+        // auto-increment behind and collide with the next insert.
+        $question = Question::query()->firstOrFail();
+        $this->assertNotSame(4242, $question->id);
+        $this->assertSame('Q1', $question->question);
+        $this->assertNotNull($question->qr_code);
+    }
+
+    public function test_a_row_whose_question_was_deleted_brings_it_back_and_applies_the_row(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Old text', 'answer' => 'Old answer', 'score' => 200]);
+        $question->delete();
+
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'New text', 'New answer', null, 400],
+        ]));
+
+        $this->assertSame([], $importer->errors);
+        $this->assertSame(1, $importer->created);
+        $this->assertSame(0, $importer->skipped);
+        $this->assertSame(1, Question::query()->count());
+
+        // Restored in place, so the printed cards keep pointing at it.
+        $restored = $question->fresh();
+        $this->assertNull($restored->deleted_at);
+        $this->assertSame($question->id, $restored->id);
+        $this->assertSame($question->qr_token, $restored->qr_token);
+        $this->assertSame('New text', $restored->question);
+        $this->assertSame('New answer', $restored->answer);
+        $this->assertSame(400, $restored->score);
+    }
+
+    public function test_bringing_back_a_deleted_question_counts_as_an_addition_even_when_nothing_changed(): void
+    {
+        $category = $this->makeCategory('Geography');
+        $question = $this->makeQuestion($category, ['question' => 'Q1', 'answer' => 'A1', 'score' => 200]);
+        $question->delete();
+
+        // The row edits no field, so the unchanged shortcut would leave it deleted.
+        $importer = $this->import($this->buildExportWorkbook([
+            [$question->id, $category->id, $category->name, 'Q1', 'A1', null, 200],
+        ]));
+
+        $this->assertSame(1, $importer->created);
+        $this->assertSame(0, $importer->unchanged);
+        $this->assertNull($question->fresh()->deleted_at);
     }
 
     public function test_an_edit_leaves_media_alone_when_the_row_carries_none(): void
